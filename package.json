@@ -1,0 +1,20 @@
+{
+  "name": "microsponsors-erc-721",
+  "version": "1.0.0",
+  "main": "truffle-config.js",
+  "scripts": {
+    "lint": "solhint \"contracts/**/*.sol\"",
+    "compile": "rm -rf build && truffle compile",
+    "deploy": "rm -rf build && truffle migrate --reset --compile-all",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/microsponsors/erc-721.git"
+  },
+  "author": "Lauren Garcia <lauren.garcia@gmail.com> (https://github.com/laurengarcia)",
+  "homepage": "https://github.com/microsponsors/erc-721#readme",
+  "devDependencies": {
+    "truffle-flattener": "^1.4.0"
+  }
+}
