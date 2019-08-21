@@ -2,11 +2,32 @@
 
 Adapted from [Open Zeppelin's ERC721.sol template](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git sha [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3)
 
-## Versioning and Compile
+#### Install
+* Install dependencies: `$ npm install`
+
+#### Lint
+Install [solhint](https://www.npmjs.com/package/solhint) globally and run the linter:
+```
+$ npm install -g solhint
+$ npm run lint
+```
+
+#### Local Deploy
+* Start Ganache in another terminal: `$ ganache-cli -p 8545`
+* Compile: `$ npm run compile`. Deploy to local ganache instance: `$ truffle migrate --network development `
+* Or... Compile & Deploy in one step: `$ npm run deploy`
+
+#### Flatten for Remix Deploy
+* `npm run flatten`
+
+## Versioning
+* Compiler: 0.5.11
+
 Note that the .sol files are marked `pragma solidity ^0.5.11` and we're using that version in in truffle-config.js `compilers.solc.version`.
 
-#### Remix
+#### Remix & Versioning
 In Remix, there is a warning about the use of `extcodehash` unless you compile with the following settings:
+
 * Compiler 0.5.11
 * Language Solidity
 * EVM Version: `petersburg`
