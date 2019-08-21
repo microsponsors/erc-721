@@ -9,6 +9,7 @@
     "lint": "solhint \"contracts/**/*.sol\"",
     "compile": "rm -rf build && truffle compile",
     "deploy": "rm -rf build && truffle migrate --reset --compile-all",
+    "flatten": "truffle-flattener ./contracts/Microsponsors.sol > flattened/Microsponsors.sol",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Lauren Garcia <lauren.garcia@gmail.com> (https://github.com/laurengarcia)",

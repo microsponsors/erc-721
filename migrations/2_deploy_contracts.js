@@ -1,5 +1,5 @@
 const Microsponsors = artifacts.require("./Microsponsors.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Microsponsors, "Microsponsors", "MSP");
+  deployer.deploy(Microsponsors, "MicrosponsorsTest", "MSPTest");
 };
