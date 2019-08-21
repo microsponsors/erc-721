@@ -116,6 +116,7 @@ contract Microsponsors is ERC721, Ownable {
 
     }
 
+    // solhint-disable
     /**
      * Customized for Microsponsors from:
      * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
@@ -126,6 +127,7 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenURI The token URI of the minted token.
      * @return A boolean that indicates if the operation was successful.
      */
+    // solhint-enable
     function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
         public
         onlyMinter
@@ -173,6 +175,7 @@ contract Microsponsors is ERC721, Ownable {
 
     }
 
+    // solhint-disable
     /**
      * Customized for Microsponsors from
      * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
@@ -183,6 +186,7 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenURI The token URI of the minted token.
      * @return A boolean that indicates if the operation was successful.
      */
+    // solhint-enable
     function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
         public
         onlyMinter
@@ -244,11 +248,13 @@ contract Microsponsors is ERC721, Ownable {
 
     }
 
+    // solhint-disable
     /**
      * Customized for Microsponsors
      * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Burnable.sol     * @dev Burns a specific ERC721 token.
      * @param tokenId uint256 id of the ERC721 token to be burned.
      */
+     // solhint-enable
     function burn(uint256 tokenId) public {
 
         require(
