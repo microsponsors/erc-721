@@ -43,11 +43,13 @@ contract Microsponsors is ERC721, Ownable {
      * @dev Constructor function
      */
     constructor (string memory name, string memory symbol) public {
+
         _name = name;
         _symbol = symbol;
 
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
+
     }
 
     /**
@@ -88,8 +90,13 @@ contract Microsponsors is ERC721, Ownable {
     }
 
     modifier onlyMinter() {
-        require(isMinter(_msgSender()), "MinterRole: caller does not have the Minter role");
+
+        require(
+            isMinter(_msgSender()),
+            "MinterRole: caller is not whitelisted for the Minter role"
+        );
         _;
+
     }
 
     /**
@@ -98,9 +105,15 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId The token id to mint.
      * @return A boolean that indicates if the operation was successful.
      */
-    function mint(address to, uint256 tokenId) public onlyMinter returns (bool) {
+    function mint(address to, uint256 tokenId)
+        public
+        onlyMinter
+        returns (bool)
+    {
+
         _mint(to, tokenId);
         return true;
+
     }
 
     /**
@@ -113,10 +126,16 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenURI The token URI of the minted token.
      * @return A boolean that indicates if the operation was successful.
      */
-    function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI) public onlyMinter returns (bool) {
+    function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+        public
+        onlyMinter
+        returns (bool)
+    {
+
         _mint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);
         return true;
+
     }
 
     /**
@@ -125,9 +144,15 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId The token id to mint.
      * @return A boolean that indicates if the operation was successful.
      */
-    function safeMint(address to, uint256 tokenId) public onlyMinter returns (bool) {
+    function safeMint(address to, uint256 tokenId)
+        public
+        onlyMinter
+        returns (bool)
+    {
+
         _safeMint(to, tokenId);
         return true;
+
     }
 
     /**
@@ -137,9 +162,15 @@ contract Microsponsors is ERC721, Ownable {
      * @param _data bytes data to send along with a safe transfer check.
      * @return A boolean that indicates if the operation was successful.
      */
-    function safeMint(address to, uint256 tokenId, bytes memory _data) public onlyMinter returns (bool) {
+    function safeMint(address to, uint256 tokenId, bytes memory _data)
+        public
+        onlyMinter
+        returns (bool)
+    {
+
         _safeMint(to, tokenId, _data);
         return true;
+
     }
 
     /**
@@ -152,10 +183,16 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenURI The token URI of the minted token.
      * @return A boolean that indicates if the operation was successful.
      */
-    function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI) public onlyMinter returns (bool) {
+    function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+        public
+        onlyMinter
+        returns (bool)
+    {
+
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, tokenURI);
         return true;
+
     }
 
     /**
@@ -165,8 +202,13 @@ contract Microsponsors is ERC721, Ownable {
      * @param uri string URI to assign
      */
     function _setTokenURI(uint256 tokenId, string memory uri) internal {
-        require(_exists(tokenId), "ERC721Metadata: URI set of nonexistent token");
+
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI set of nonexistent token"
+        );
         _tokenURIs[tokenId] = uri;
+
     }
 
     /**
@@ -175,8 +217,13 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId uint256 ID of the token to query
      */
     function tokenURI(uint256 tokenId) external view returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+
+        require(
+            _exists(tokenId),
+            "ERC721Metadata: URI query for nonexistent token"
+        );
         return _tokenURIs[tokenId];
+
     }
 
     /**
@@ -187,12 +234,14 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId uint256 ID of the token being burned by the msg.sender
      */
     function _burn(address tokenOwner, uint256 tokenId) internal {
+
         super._burn(tokenOwner, tokenId);
 
         // Clear metadata (if any)
         if (bytes(_tokenURIs[tokenId]).length != 0) {
             delete _tokenURIs[tokenId];
         }
+
     }
 
     /**
@@ -201,9 +250,13 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId uint256 id of the ERC721 token to be burned.
      */
     function burn(uint256 tokenId) public {
-        //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721Burnable: caller is not owner nor approved");
+
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "ERC721Burnable: caller is not owner nor approved"
+        );
         _burn(tokenId);
+
     }
 
 }
