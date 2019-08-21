@@ -14,7 +14,6 @@
   },
   "author": "Lauren Garcia <lauren.garcia@gmail.com> (https://github.com/laurengarcia)",
   "dependencies": {
-    "@0x/contracts-exchange": "^2.1.11"
   },
   "devDependencies": {
     "truffle-flattener": "^1.4.0"

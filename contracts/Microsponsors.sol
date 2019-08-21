@@ -1,7 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./ERC721.sol";
-import "@0x/contracts-utils/contracts/src/Ownable.sol";
+import "./Ownable.sol";
 
 
 // Copy of Deployed Registry contract ABI

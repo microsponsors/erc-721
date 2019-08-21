@@ -894,10 +894,15 @@ contract ERC721 is Context, ERC165, IERC721 {
 
 }
 
-// File: @0x/contracts-utils/contracts/src/interfaces/IOwnable.sol
+// File: contracts/IOwnable.sol
 
-pragma solidity ^0.5.5;
+pragma solidity ^0.5.0;
 
+/*
+ * Based on 0x's Ownable, but modified here because
+ * Open Zeppelin is using solidity pragma 0.5.0 (vs 0x's 0.5.5)
+ * import "@0x/contracts-utils/contracts/src/IOwnable.sol";
+ */
 
 contract IOwnable {
 
@@ -905,9 +910,15 @@ contract IOwnable {
         public;
 }
 
-// File: @0x/contracts-utils/contracts/src/Ownable.sol
+// File: contracts/Ownable.sol
 
-pragma solidity ^0.5.5;
+pragma solidity ^0.5.0;
+
+/*
+ * Based on 0x's Ownable, but modified here because
+ * Open Zeppelin is using solidity pragma 0.5.0 (vs 0x's 0.5.5)
+ * import "@0x/contracts-utils/contracts/src/Ownable.sol";
+ */
 
 
 
