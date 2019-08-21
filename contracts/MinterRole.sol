@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./Context.sol";
+import "./GSNContext.sol";
 import "./Roles.sol";
 
 contract MinterRole is Context {
