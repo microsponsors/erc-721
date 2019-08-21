@@ -16,5 +16,8 @@
   "homepage": "https://github.com/microsponsors/erc-721#readme",
   "devDependencies": {
     "truffle-flattener": "^1.4.0"
+  },
+  "dependencies": {
+    "@0x/contracts-exchange": "^2.1.11"
   }
 }

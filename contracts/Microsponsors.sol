@@ -1,13 +1,14 @@
 pragma solidity ^0.5.0;
 
 import "./ERC721Mintable.sol";
+import "@0x/contracts-utils/contracts/src/Ownable.sol";
 
 /**
  * Customized for Microsponsors
  * from Open Zeppelin's ERC721Metadata contract:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
  */
-contract ERC721 is ERC721Mintable {
+contract ERC721 is ERC721Mintable, Ownable {
 
     // Token name
     string private _name;
