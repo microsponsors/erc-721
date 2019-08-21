@@ -1,4 +1,5 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /*
  * Based on 0x's Ownable, but modified here because

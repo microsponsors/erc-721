@@ -1,7 +1,8 @@
 
 // File: contracts/GSNContext.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /*
  * @dev Provides information about the current execution context, including the
@@ -37,7 +38,8 @@ contract Context {
 
 // File: contracts/IERC165.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -62,7 +64,7 @@ interface IERC165 {
 
 // File: contracts/IERC721.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
 
 
 /**
@@ -117,7 +119,8 @@ contract IERC721 is IERC165 {
 
 // File: contracts/IERC721Receiver.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /**
  * @title ERC721 token receiver interface
@@ -145,7 +148,8 @@ contract IERC721Receiver {
 
 // File: contracts/SafeMath.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
@@ -307,7 +311,8 @@ library SafeMath {
 
 // File: contracts/Address.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /**
  * @dev Collection of functions related to the address type
@@ -353,7 +358,7 @@ library Address {
 
 // File: contracts/Counters.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
 
 
 /**
@@ -392,7 +397,7 @@ library Counters {
 
 // File: contracts/ERC165.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
 
 
 /**
@@ -446,7 +451,7 @@ contract ERC165 is IERC165 {
 
 // File: contracts/ERC721.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
 
 
 
@@ -896,7 +901,8 @@ contract ERC721 is Context, ERC165, IERC721 {
 
 // File: contracts/IOwnable.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /*
  * Based on 0x's Ownable, but modified here because
@@ -912,7 +918,8 @@ contract IOwnable {
 
 // File: contracts/Ownable.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
+
 
 /*
  * Based on 0x's Ownable, but modified here because
@@ -953,7 +960,7 @@ contract Ownable is
 
 // File: contracts/Microsponsors.sol
 
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.11;
 
 
 
