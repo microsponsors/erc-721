@@ -43,13 +43,15 @@ contract Microsponsors is ERC721, Ownable {
     /**
      * @dev Constructor function
      */
-    constructor (string memory name, string memory symbol) public {
+    constructor (string memory name, string memory symbol, address registryAddress) public {
 
         _name = name;
         _symbol = symbol;
 
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
+
+        registry = DeployedRegistry(registryAddress);
 
     }
 
