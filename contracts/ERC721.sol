@@ -109,6 +109,16 @@ contract ERC721 is Context, ERC165, IERC721 {
         );
 
         require(
+            isWhitelisted(to),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(_msgSender()),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
+
+        require(
             _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
             "ERC721: approve caller is not owner nor approved for all"
         );
@@ -145,6 +155,16 @@ contract ERC721 is Context, ERC165, IERC721 {
 
         require(to != _msgSender(), "ERC721: approve to caller");
 
+        require(
+            isWhitelisted(_msgSender()),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(to),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
+
         _operatorApprovals[_msgSender()][to] = approved;
         emit ApprovalForAll(_msgSender(), to, approved);
 
@@ -179,6 +199,16 @@ contract ERC721 is Context, ERC165, IERC721 {
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
+        );
+
+        require(
+            isWhitelisted(from),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(to),
+            "ERC721: transfer restricted to whitelisted addresses"
         );
 
         _transferFrom(from, to, tokenId);
@@ -217,6 +247,16 @@ contract ERC721 is Context, ERC165, IERC721 {
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data)
         public
     {
+
+        require(
+            isWhitelisted(from),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(to),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -283,7 +323,18 @@ contract ERC721 is Context, ERC165, IERC721 {
             "ERC721: operator query for nonexistent token"
         );
 
+        require(
+            isWhitelisted(spender),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
         address owner = ownerOf(tokenId);
+
+
+        require(
+            isWhitelisted(owner),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
 
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
 
