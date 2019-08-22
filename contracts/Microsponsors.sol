@@ -31,6 +31,10 @@ contract Microsponsors is ERC721, Ownable {
     // Mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
 
+    // Pause. When true, token minting and transfers stop.
+    bool public paused = false;
+
+
     /*
      *     bytes4(keccak256('name()')) == 0x06fdde03
      *     bytes4(keccak256('symbol()')) == 0x95d89b41
@@ -111,6 +115,7 @@ contract Microsponsors is ERC721, Ownable {
     function mint(address to, uint256 tokenId)
         public
         onlyMinter
+        whenNotPaused
         returns (bool)
     {
 
@@ -134,6 +139,7 @@ contract Microsponsors is ERC721, Ownable {
     function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
         public
         onlyMinter
+        whenNotPaused
         returns (bool)
     {
 
@@ -152,6 +158,7 @@ contract Microsponsors is ERC721, Ownable {
     function safeMint(address to, uint256 tokenId)
         public
         onlyMinter
+        whenNotPaused
         returns (bool)
     {
 
@@ -170,6 +177,7 @@ contract Microsponsors is ERC721, Ownable {
     function safeMint(address to, uint256 tokenId, bytes memory _data)
         public
         onlyMinter
+        whenNotPaused
         returns (bool)
     {
 
@@ -193,6 +201,7 @@ contract Microsponsors is ERC721, Ownable {
     function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
         public
         onlyMinter
+        whenNotPaused
         returns (bool)
     {
 
@@ -258,7 +267,7 @@ contract Microsponsors is ERC721, Ownable {
      * @param tokenId uint256 id of the ERC721 token to be burned.
      */
      // solhint-enable
-    function burn(uint256 tokenId) public {
+    function burn(uint256 tokenId) public whenNotPaused {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -267,5 +276,35 @@ contract Microsponsors is ERC721, Ownable {
         _burn(tokenId);
 
     }
+
+
+    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
+
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
+        _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Called by contract owner to pause actions on this contract
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause the smart contract.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
+    function unpause() public onlyOwner whenPaused {
+        // can't unpause if contract was upgraded
+        paused = false;
+    }
+
 
 }
