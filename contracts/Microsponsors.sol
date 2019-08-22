@@ -2,7 +2,6 @@ pragma solidity ^0.5.11;
 
 
 import "./ERC721.sol";
-import "./Ownable.sol";
 
 
 // Copy of Deployed Registry contract ABI
@@ -17,7 +16,7 @@ contract DeployedRegistry {
  * from Open Zeppelin's ERC721Metadata contract:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
  */
-contract Microsponsors is ERC721, Ownable {
+contract Microsponsors is ERC721 {
 
     // Token name
     string private _name;

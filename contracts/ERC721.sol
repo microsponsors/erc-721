@@ -2,6 +2,7 @@ pragma solidity ^0.5.11;
 
 
 import "./GSNContext.sol";
+import "./Ownable.sol";
 import "./IERC721.sol";
 import "./IERC721Receiver.sol";
 import "./SafeMath.sol";
@@ -13,7 +14,7 @@ import "./ERC165.sol";
  * @title ERC721 Non-Fungible Token Standard basic implementation
  * @dev see https://eips.ethereum.org/EIPS/eip-721
  */
-contract ERC721 is Context, ERC165, IERC721 {
+contract ERC721 is Context, ERC165, IERC721, Ownable {
     using SafeMath for uint256;
     using Address for address;
     using Counters for Counters.Counter;
