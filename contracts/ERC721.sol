@@ -102,6 +102,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function approve(address to, uint256 tokenId)
         public
         onlyWhitelisted
+        whenNotPaused
     {
 
         address owner = ownerOf(tokenId);
@@ -152,6 +153,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function setApprovalForAll(address to, bool approved)
         public
         onlyWhitelisted
+        whenNotPaused
     {
 
         require(to != _msgSender(), "ERC721: approve to caller");
@@ -193,6 +195,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function transferFrom(address from, address to, uint256 tokenId)
         public
         onlyWhitelisted
+        whenNotPaused
     {
 
         require(
@@ -246,6 +249,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data)
         public
         onlyWhitelisted
+        whenNotPaused
     {
 
         require(
