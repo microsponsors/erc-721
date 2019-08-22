@@ -1,15 +1,6 @@
 pragma solidity ^0.5.11;
 
-
 import "./ERC721.sol";
-
-
-// Copy of Deployed Registry contract ABI
-// We just use the signatures of the parts we need to interact with:
-contract DeployedRegistry {
-    mapping (address => bool) public isWhitelisted;
-}
-
 
 /**
  * Customized for Microsponsors
@@ -24,15 +15,8 @@ contract Microsponsors is ERC721 {
     // Token symbol
     string private _symbol;
 
-    // Microsponsors Registry (whitelist)
-    DeployedRegistry public registry;
-
     // Mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
-
-    // Pause. When true, token minting and transfers stop.
-    bool public paused = false;
-
 
     /*
      *     bytes4(keccak256('name()')) == 0x06fdde03
@@ -54,7 +38,7 @@ contract Microsponsors is ERC721 {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
 
-        registry = DeployedRegistry(registryAddress);
+        super.updateRegistryAddress(registryAddress);
 
     }
 
@@ -72,58 +56,6 @@ contract Microsponsors is ERC721 {
      */
     function symbol() external view returns (string memory) {
         return _symbol;
-    }
-
-    /**
-     * @dev Update address for Microsponsors Registry contract
-     * @param newAddress where the Registry contract lives
-     */
-    function updateRegistryAddress(address newAddress) public onlyOwner {
-        require(msg.sender == owner, 'ERC721: Not authorized');
-        registry = DeployedRegistry(newAddress);
-    }
-
-    /**
-     * @dev Checks Registry contract for whitelisted status
-     * @param target The address to check
-     */
-    function isWhitelisted(address target) public view returns (bool) {
-        return registry.isWhitelisted(target);
-    }
-
-    /**
-     * @dev Checks if caller isWhitelisted(),
-     * throws with error message and refunds gas if not
-     */
-    modifier onlyWhitelisted() {
-
-        require(
-            isWhitelisted(_msgSender()),
-            "ERC721: caller is not whitelisted"
-        );
-        _;
-
-    }
-
-    /**
-     * Checks if minter isWhitelisted()
-     */
-    function isMinter(address account) public view returns (bool) {
-        return isWhitelisted(account);
-    }
-
-    /**
-     * @dev Checks if caller isMinter(),
-     * throws with error message and refunds gas if not
-     */
-    modifier onlyMinter() {
-
-        require(
-            isMinter(_msgSender()),
-            "ERC721: caller is not whitelisted for the Minter role"
-        );
-        _;
-
     }
 
     /**
@@ -296,35 +228,5 @@ contract Microsponsors is ERC721 {
         _burn(tokenId);
 
     }
-
-
-    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
-
-
-    /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-    /// @dev Called by contract owner to pause actions on this contract
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
-
-    /// @dev Called by contract owner to unpause the smart contract.
-    /// @notice This is public rather than external so it can be called by
-    ///  derived contracts.
-    function unpause() public onlyOwner whenPaused {
-        // can't unpause if contract was upgraded
-        paused = false;
-    }
-
 
 }

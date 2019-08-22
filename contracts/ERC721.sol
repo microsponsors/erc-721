@@ -1,8 +1,6 @@
 pragma solidity ^0.5.11;
 
 
-import "./GSNContext.sol";
-import "./Ownable.sol";
 import "./IERC721.sol";
 import "./IERC721Receiver.sol";
 import "./SafeMath.sol";
@@ -10,14 +8,28 @@ import "./Address.sol";
 import "./Counters.sol";
 import "./ERC165.sol";
 
+
+// Copy of Deployed Registry contract ABI
+// We just use the signatures of the parts we need to interact with:
+contract DeployedRegistry {
+    mapping (address => bool) public isWhitelisted;
+}
+
+
 /**
  * @title ERC721 Non-Fungible Token Standard basic implementation
  * @dev see https://eips.ethereum.org/EIPS/eip-721
  */
-contract ERC721 is Context, ERC165, IERC721, Ownable {
+contract ERC721 is ERC165, IERC721 {
     using SafeMath for uint256;
     using Address for address;
     using Counters for Counters.Counter;
+
+    // This contract's owner (administator)
+    address public owner;
+
+    // Microsponsors Registry (whitelist)
+    DeployedRegistry public registry;
 
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
@@ -34,6 +46,9 @@ contract ERC721 is Context, ERC165, IERC721, Ownable {
 
     // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
+
+    // Pause. When true, token minting and transfers stop.
+    bool public paused = false;
 
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
@@ -57,7 +72,111 @@ contract ERC721 is Context, ERC165, IERC721, Ownable {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
 
+        // set the contract owner
+        owner = _msgSender();
     }
+
+    /*
+     * @dev Provides information about the current execution context, including the
+     * sender of the transaction and its data. While these are generally available
+     * via msg.sender and msg.data, they not should not be accessed in such a direct
+     * manner, since when dealing with GSN meta-transactions the account sending and
+     * paying for execution may not be the actual sender (as far as an application
+     * is concerned).
+     */
+
+    function _msgSender() internal view returns (address) {
+
+        return msg.sender;
+
+    }
+
+    function _msgData() internal view returns (bytes memory) {
+
+        this; // silence state mutability warning without generating bytecode -
+              // see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+
+    }
+
+    /*
+     * @dev Sets the contract's owner (administrator)
+     * Based on 0x's Ownable, but modified here
+     * import "@0x/contracts-utils/contracts/src/Ownable.sol";
+     */
+    modifier onlyOwner() {
+        require(
+            _msgSender() == owner,
+            "ERC721: caller is not owner"
+        );
+        _;
+    }
+
+    function transferOwnership(address newOwner)
+        public
+        onlyOwner
+    {
+        if (newOwner != address(0)) {
+            owner = newOwner;
+        }
+    }
+
+
+    /**
+     * @dev Update address for Microsponsors Registry contract
+     * @param newAddress where the Registry contract lives
+     */
+    function updateRegistryAddress(address newAddress)
+        public
+        onlyOwner
+    {
+        registry = DeployedRegistry(newAddress);
+    }
+
+
+    /**
+     * @dev Checks Registry contract for whitelisted status
+     * @param target The address to check
+     */
+    function isWhitelisted(address target) public view returns (bool) {
+        return registry.isWhitelisted(target);
+    }
+
+    /**
+     * @dev Checks if caller isWhitelisted(),
+     * throws with error message and refunds gas if not
+     */
+    modifier onlyWhitelisted() {
+
+        require(
+            isWhitelisted(_msgSender()),
+            "ERC721: caller is not whitelisted"
+        );
+        _;
+
+    }
+
+    /**
+     * @dev Checks if minter isWhitelisted()
+     */
+    function isMinter(address account) public view returns (bool) {
+        return isWhitelisted(account);
+    }
+
+    /**
+     * @dev Checks if caller isMinter(),
+     * throws with error message and refunds gas if not
+     */
+    modifier onlyMinter() {
+
+        require(
+            isMinter(_msgSender()),
+            "ERC721: caller is not whitelisted for the Minter role"
+        );
+        _;
+
+    }
+
 
     /**
      * @dev Gets the balance of the specified address.
@@ -501,6 +620,35 @@ contract ERC721 is Context, ERC165, IERC721, Ownable {
             _tokenApprovals[tokenId] = address(0);
         }
 
+    }
+
+
+    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
+
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
+        _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Called by contract owner to pause actions on this contract
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause the smart contract.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
+    function unpause() public onlyOwner whenPaused {
+        // can't unpause if contract was upgraded
+        paused = false;
     }
 
 }
