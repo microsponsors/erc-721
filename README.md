@@ -18,9 +18,9 @@ $ npm run lint
 * Or... Compile & Deploy in one step: `$ npm run deploy`
 
 #### Flatten for Remix Deploy
-* `npm run flatten`
+* `$ npm run flatten`
 
-## Versioning
+#### Versioning
 * Compiler: 0.5.11
 
 Note that the .sol files are marked `pragma solidity ^0.5.11` and we're using that version in in truffle-config.js `compilers.solc.version`.
