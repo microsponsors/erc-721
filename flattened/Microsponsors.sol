@@ -1,41 +1,4 @@
 
-// File: contracts/GSNContext.sol
-
-pragma solidity ^0.5.11;
-
-
-/*
- * @dev Provides information about the current execution context, including the
- * sender of the transaction and its data. While these are generally available
- * via msg.sender and msg.data, they not should not be accessed in such a direct
- * manner, since when dealing with GSN meta-transactions the account sending and
- * paying for execution may not be the actual sender (as far as an application
- * is concerned).
- *
- * This contract is only required for intermediate, library-like contracts.
- */
-contract Context {
-
-    // Empty internal constructor, to prevent people from mistakenly deploying
-    // an instance of this contract, with should be used via inheritance.
-    constructor () internal { }
-    // solhint-disable-previous-line no-empty-blocks
-
-    function _msgSender() internal view returns (address) {
-
-        return msg.sender;
-
-    }
-
-    function _msgData() internal view returns (bytes memory) {
-
-        this; // silence state mutability warning without generating bytecode -
-              // see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-
-    }
-}
-
 // File: contracts/IERC165.sol
 
 pragma solidity ^0.5.11;
@@ -72,18 +35,18 @@ pragma solidity ^0.5.11;
  */
 contract IERC721 is IERC165 {
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
-    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
-    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+    event Approval(address indexed tokenOwner, address indexed approved, uint256 indexed tokenId);
+    event ApprovalForAll(address indexed tokenOwner, address indexed operator, bool approved);
 
     /**
      * @dev Returns the number of NFTs in `owner`'s account.
      */
-    function balanceOf(address owner) public view returns (uint256 balance);
+    function balanceOf(address tokenOwner) public view returns (uint256 balance);
 
     /**
      * @dev Returns the owner of the NFT specified by `tokenId`.
      */
-    function ownerOf(uint256 tokenId) public view returns (address owner);
+    function ownerOf(uint256 tokenId) public view returns (address tokenOwner);
 
     /**
      * @dev Transfers a specific NFT (`tokenId`) from one account (`from`) to
@@ -111,7 +74,7 @@ contract IERC721 is IERC165 {
     function getApproved(uint256 tokenId) public view returns (address operator);
 
     function setApprovalForAll(address operator, bool _approved) public;
-    function isApprovedForAll(address owner, address operator) public view returns (bool);
+    function isApprovedForAll(address tokenOwner, address operator) public view returns (bool);
 
 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public;
@@ -460,30 +423,46 @@ pragma solidity ^0.5.11;
 
 
 
+// Copy of Deployed Registry contract ABI
+// We just use the signatures of the parts we need to interact with:
+contract DeployedRegistry {
+    mapping (address => bool) public isWhitelisted;
+}
+
+
 /**
  * @title ERC721 Non-Fungible Token Standard basic implementation
  * @dev see https://eips.ethereum.org/EIPS/eip-721
  */
-contract ERC721 is Context, ERC165, IERC721 {
+contract ERC721 is ERC165, IERC721 {
     using SafeMath for uint256;
     using Address for address;
     using Counters for Counters.Counter;
+
+    // This contract's owner (administator)
+    address public owner;
+
+    // Microsponsors Registry (whitelist)
+    DeployedRegistry public registry;
 
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // Mapping from token ID to owner
+    // Mapping from token ID to token owner
     mapping (uint256 => address) private _tokenOwner;
 
     // Mapping from token ID to approved address
     mapping (uint256 => address) private _tokenApprovals;
 
-    // Mapping from owner to number of owned token
+    // Mapping from token owner to number of owned token
     mapping (address => Counters.Counter) private _ownedTokensCount;
 
-    // Mapping from owner to operator approvals
+    // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
+
+    // Pause. When true, token minting and transfers stop.
+    bool public paused = false;
 
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
@@ -507,21 +486,125 @@ contract ERC721 is Context, ERC165, IERC721 {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
 
+        // set the contract owner
+        owner = _msgSender();
+    }
+
+    /*
+     * @dev Provides information about the current execution context, including the
+     * sender of the transaction and its data. While these are generally available
+     * via msg.sender and msg.data, they not should not be accessed in such a direct
+     * manner, since when dealing with GSN meta-transactions the account sending and
+     * paying for execution may not be the actual sender (as far as an application
+     * is concerned).
+     */
+
+    function _msgSender() internal view returns (address) {
+
+        return msg.sender;
+
+    }
+
+    function _msgData() internal view returns (bytes memory) {
+
+        this; // silence state mutability warning without generating bytecode -
+              // see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+
+    }
+
+    /*
+     * @dev Sets the contract's owner (administrator)
+     * Based on 0x's Ownable, but modified here
+     * import "@0x/contracts-utils/contracts/src/Ownable.sol";
+     */
+    modifier onlyOwner() {
+        require(
+            _msgSender() == owner,
+            "ERC721: caller is not owner"
+        );
+        _;
+    }
+
+    function transferOwnership(address newOwner)
+        public
+        onlyOwner
+    {
+        if (newOwner != address(0)) {
+            owner = newOwner;
+        }
+    }
+
+
+    /**
+     * @dev Update address for Microsponsors Registry contract
+     * @param newAddress where the Registry contract lives
+     */
+    function updateRegistryAddress(address newAddress)
+        public
+        onlyOwner
+    {
+        registry = DeployedRegistry(newAddress);
+    }
+
+
+    /**
+     * @dev Checks Registry contract for whitelisted status
+     * @param target The address to check
+     */
+    function isWhitelisted(address target) public view returns (bool) {
+        return registry.isWhitelisted(target);
     }
 
     /**
-     * @dev Gets the balance of the specified address.
-     * @param owner address to query the balance of
-     * @return uint256 representing the amount owned by the passed address
+     * @dev Checks if caller isWhitelisted(),
+     * throws with error message and refunds gas if not
      */
-    function balanceOf(address owner) public view returns (uint256) {
+    modifier onlyWhitelisted() {
 
         require(
-            owner != address(0),
+            isWhitelisted(_msgSender()),
+            "ERC721: caller is not whitelisted"
+        );
+        _;
+
+    }
+
+    /**
+     * @dev Checks if minter isWhitelisted()
+     */
+    function isMinter(address account) public view returns (bool) {
+        return isWhitelisted(account);
+    }
+
+    /**
+     * @dev Checks if caller isMinter(),
+     * throws with error message and refunds gas if not
+     */
+    modifier onlyMinter() {
+
+        require(
+            isMinter(_msgSender()),
+            "ERC721: caller is not whitelisted for the Minter role"
+        );
+        _;
+
+    }
+
+
+    /**
+     * @dev Gets the balance of the specified address.
+     * @param tokenOwner address to query the balance of
+     * @return uint256 representing the amount owned by the passed address
+     */
+    function balanceOf(address tokenOwner) public view returns (uint256) {
+
+        require(
+            tokenOwner != address(0),
             "ERC721: balance query for the zero address"
         );
 
-        return _ownedTokensCount[owner].current();
+        return _ownedTokensCount[tokenOwner].current();
 
     }
 
@@ -532,13 +615,13 @@ contract ERC721 is Context, ERC165, IERC721 {
      */
     function ownerOf(uint256 tokenId) public view returns (address) {
 
-        address owner = _tokenOwner[tokenId];
+        address tokenOwner = _tokenOwner[tokenId];
         require(
-            owner != address(0),
-            "ERC721: owner query for nonexistent token"
+            tokenOwner != address(0),
+            "ERC721: token owner query for nonexistent token"
         );
 
-        return owner;
+        return tokenOwner;
 
     }
 
@@ -550,22 +633,31 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to address to be approved for the given token ID
      * @param tokenId uint256 ID of the token to be approved
      */
-    function approve(address to, uint256 tokenId) public {
+    function approve(address to, uint256 tokenId)
+        public
+        onlyWhitelisted
+        whenNotPaused
+    {
 
-        address owner = ownerOf(tokenId);
+        address tokenOwner = ownerOf(tokenId);
 
         require(
-            to != owner,
-            "ERC721: approval to current owner"
+            to != tokenOwner,
+            "ERC721: approval is redundant"
         );
 
         require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "ERC721: approve caller is not owner nor approved for all"
+            isWhitelisted(to),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
+
+        require(
+            _msgSender() == tokenOwner || isApprovedForAll(tokenOwner, _msgSender()),
+            "ERC721: approve caller is not token owner nor approved for all"
         );
 
         _tokenApprovals[tokenId] = to;
-        emit Approval(owner, to, tokenId);
+        emit Approval(tokenOwner, to, tokenId);
 
     }
 
@@ -592,9 +684,18 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to operator address to set the approval
      * @param approved representing the status of the approval to be set
      */
-    function setApprovalForAll(address to, bool approved) public {
+    function setApprovalForAll(address to, bool approved)
+        public
+        onlyWhitelisted
+        whenNotPaused
+    {
 
         require(to != _msgSender(), "ERC721: approve to caller");
+
+        require(
+            isWhitelisted(to),
+            "ERC721: approval restricted to whitelisted addresses"
+        );
 
         _operatorApprovals[_msgSender()][to] = approved;
         emit ApprovalForAll(_msgSender(), to, approved);
@@ -602,18 +703,18 @@ contract ERC721 is Context, ERC165, IERC721 {
     }
 
     /**
-     * @dev Tells whether an operator is approved by a given owner.
-     * @param owner owner address which you want to query the approval of
+     * @dev Tells whether an operator is approved by a given token owner.
+     * @param tokenOwner token owner address which you want to query the approval of
      * @param operator operator address which you want to query the approval of
-     * @return bool whether the given operator is approved by the given owner
+     * @return bool whether the given operator is approved by the token owner
      */
-    function isApprovedForAll(address owner, address operator)
+    function isApprovedForAll(address tokenOwner, address operator)
         public
         view
         returns (bool)
     {
 
-        return _operatorApprovals[owner][operator];
+        return _operatorApprovals[tokenOwner][operator];
 
     }
 
@@ -625,11 +726,25 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to address to receive the ownership of the given token ID
      * @param tokenId uint256 ID of the token to be transferred
      */
-    function transferFrom(address from, address to, uint256 tokenId) public {
+    function transferFrom(address from, address to, uint256 tokenId)
+        public
+        onlyWhitelisted
+        whenNotPaused
+    {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
+        );
+
+        require(
+            isWhitelisted(from),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(to),
+            "ERC721: transfer restricted to whitelisted addresses"
         );
 
         _transferFrom(from, to, tokenId);
@@ -667,7 +782,19 @@ contract ERC721 is Context, ERC165, IERC721 {
      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data)
         public
+        onlyWhitelisted
+        whenNotPaused
     {
+
+        require(
+            isWhitelisted(from),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
+        require(
+            isWhitelisted(to),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -710,9 +837,9 @@ contract ERC721 is Context, ERC165, IERC721 {
      */
     function _exists(uint256 tokenId) internal view returns (bool) {
 
-        address owner = _tokenOwner[tokenId];
+        address tokenOwner = _tokenOwner[tokenId];
 
-        return owner != address(0);
+        return tokenOwner != address(0);
 
     }
 
@@ -726,6 +853,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function _isApprovedOrOwner(address spender, uint256 tokenId)
         internal
         view
+        onlyWhitelisted
         returns (bool)
     {
 
@@ -734,9 +862,20 @@ contract ERC721 is Context, ERC165, IERC721 {
             "ERC721: operator query for nonexistent token"
         );
 
-        address owner = ownerOf(tokenId);
+        require(
+            isWhitelisted(spender),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
 
-        return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
+        address tokenOwner = ownerOf(tokenId);
+
+
+        require(
+            isWhitelisted(tokenOwner),
+            "ERC721: transfer restricted to whitelisted addresses"
+        );
+
+        return (spender == tokenOwner || getApproved(tokenId) == spender || isApprovedForAll(tokenOwner, spender));
 
     }
 
@@ -800,22 +939,22 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @dev Internal function to burn a specific token.
      * Reverts if the token does not exist.
      * Deprecated, use {_burn} instead.
-     * @param owner owner of the token to burn
+     * @param tokenOwner owner of the token to burn
      * @param tokenId uint256 ID of the token being burned
      */
-    function _burn(address owner, uint256 tokenId) internal {
+    function _burn(address tokenOwner, uint256 tokenId) internal {
 
         require(
-            ownerOf(tokenId) == owner,
+            ownerOf(tokenId) == tokenOwner,
             "ERC721: burn of token that is not own"
         );
 
         _clearApproval(tokenId);
 
-        _ownedTokensCount[owner].decrement();
+        _ownedTokensCount[tokenOwner].decrement();
         _tokenOwner[tokenId] = address(0);
 
-        emit Transfer(owner, address(0), tokenId);
+        emit Transfer(tokenOwner, address(0), tokenId);
 
     }
 
@@ -897,65 +1036,35 @@ contract ERC721 is Context, ERC165, IERC721 {
 
     }
 
-}
 
-// File: contracts/IOwnable.sol
-
-pragma solidity ^0.5.11;
+    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
 
 
-/*
- * Based on 0x's Ownable, but modified here because
- * Open Zeppelin is using solidity pragma 0.5.0 (vs 0x's 0.5.5)
- * import "@0x/contracts-utils/contracts/src/IOwnable.sol";
- */
-
-contract IOwnable {
-
-    function transferOwnership(address newOwner)
-        public;
-}
-
-// File: contracts/Ownable.sol
-
-pragma solidity ^0.5.11;
-
-
-/*
- * Based on 0x's Ownable, but modified here because
- * Open Zeppelin is using solidity pragma 0.5.0 (vs 0x's 0.5.5)
- * import "@0x/contracts-utils/contracts/src/Ownable.sol";
- */
-
-
-
-contract Ownable is
-    IOwnable
-{
-    address public owner;
-
-    constructor ()
-        public
-    {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(
-            msg.sender == owner,
-            "ONLY_CONTRACT_OWNER"
-        );
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
         _;
     }
 
-    function transferOwnership(address newOwner)
-        public
-        onlyOwner
-    {
-        if (newOwner != address(0)) {
-            owner = newOwner;
-        }
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
     }
+
+    /// @dev Called by contract owner to pause actions on this contract
+    function pause() external onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause the smart contract.
+    /// @notice This is public rather than external so it can be called by
+    ///  derived contracts.
+    function unpause() public onlyOwner whenPaused {
+        // can't unpause if contract was upgraded
+        paused = false;
+    }
+
 }
 
 // File: contracts/Microsponsors.sol
@@ -963,21 +1072,12 @@ contract Ownable is
 pragma solidity ^0.5.11;
 
 
-
-
-// Copy of Deployed Registry contract ABI
-// We just use the signatures of the parts we need to interact with:
-contract DeployedRegistry {
-    mapping (address => bool) public isWhitelisted;
-}
-
-
 /**
  * Customized for Microsponsors
  * from Open Zeppelin's ERC721Metadata contract:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
  */
-contract Microsponsors is ERC721, Ownable {
+contract Microsponsors is ERC721 {
 
     // Token name
     string private _name;
@@ -985,15 +1085,8 @@ contract Microsponsors is ERC721, Ownable {
     // Token symbol
     string private _symbol;
 
-    // Microsponsors Registry (whitelist)
-    DeployedRegistry public registry;
-
     // Mapping for token URIs
     mapping(uint256 => string) private _tokenURIs;
-
-    // Pause. When true, token minting and transfers stop.
-    bool public paused = false;
-
 
     /*
      *     bytes4(keccak256('name()')) == 0x06fdde03
@@ -1015,7 +1108,7 @@ contract Microsponsors is ERC721, Ownable {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721_METADATA);
 
-        registry = DeployedRegistry(registryAddress);
+        super.updateRegistryAddress(registryAddress);
 
     }
 
@@ -1033,37 +1126,6 @@ contract Microsponsors is ERC721, Ownable {
      */
     function symbol() external view returns (string memory) {
         return _symbol;
-    }
-
-    /**
-     * @dev Update address for Microsponsors Registry contract
-     * @param newAddress where the Registry contract lives
-     */
-    function updateRegistryAddress(address newAddress) public onlyOwner {
-        require(msg.sender == owner, 'NOT_AUTHORIZED');
-        registry = DeployedRegistry(newAddress);
-    }
-
-    /**
-     * @dev Checks Registry contract for whitelisted status
-     * @param target The address to check
-     */
-    function isWhitelisted(address target) public view returns (bool) {
-        return registry.isWhitelisted(target);
-    }
-
-    function isMinter(address account) public view returns (bool) {
-        return isWhitelisted(account);
-    }
-
-    modifier onlyMinter() {
-
-        require(
-            isMinter(_msgSender()),
-            "MinterRole: caller is not whitelisted for the Minter role"
-        );
-        _;
-
     }
 
     /**
@@ -1181,7 +1243,7 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _exists(tokenId),
-            "ERC721Metadata: URI set of nonexistent token"
+            "ERC721: URI set of nonexistent token"
         );
         _tokenURIs[tokenId] = uri;
 
@@ -1196,7 +1258,7 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _exists(tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
+            "ERC721: URI query for nonexistent token"
         );
         return _tokenURIs[tokenId];
 
@@ -1231,40 +1293,10 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721Burnable: caller is not owner nor approved"
+            "ERC721: caller is not owner nor approved"
         );
         _burn(tokenId);
 
     }
-
-
-    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
-
-
-    /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-    /// @dev Called by contract owner to pause actions on this contract
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
-
-    /// @dev Called by contract owner to unpause the smart contract.
-    /// @notice This is public rather than external so it can be called by
-    ///  derived contracts.
-    function unpause() public onlyOwner whenPaused {
-        // can't unpause if contract was upgraded
-        paused = false;
-    }
-
 
 }
