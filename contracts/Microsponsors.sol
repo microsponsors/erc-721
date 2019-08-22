@@ -80,7 +80,7 @@ contract Microsponsors is ERC721, Ownable {
      * @param newAddress where the Registry contract lives
      */
     function updateRegistryAddress(address newAddress) public onlyOwner {
-        require(msg.sender == owner, 'NOT_AUTHORIZED');
+        require(msg.sender == owner, 'ERC721: Not authorized');
         registry = DeployedRegistry(newAddress);
     }
 
@@ -92,15 +92,36 @@ contract Microsponsors is ERC721, Ownable {
         return registry.isWhitelisted(target);
     }
 
+    /**
+     * @dev Checks if caller isWhitelisted(),
+     * throws with error message and refunds gas if not
+     */
+    modifier onlyWhitelisted() {
+
+        require(
+            isWhitelisted(_msgSender()),
+            "ERC721: caller is not whitelisted"
+        );
+        _;
+
+    }
+
+    /**
+     * Checks if minter isWhitelisted()
+     */
     function isMinter(address account) public view returns (bool) {
         return isWhitelisted(account);
     }
 
+    /**
+     * @dev Checks if caller isMinter(),
+     * throws with error message and refunds gas if not
+     */
     modifier onlyMinter() {
 
         require(
             isMinter(_msgSender()),
-            "MinterRole: caller is not whitelisted for the Minter role"
+            "ERC721: caller is not whitelisted for the Minter role"
         );
         _;
 
@@ -221,7 +242,7 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _exists(tokenId),
-            "ERC721Metadata: URI set of nonexistent token"
+            "ERC721: URI set of nonexistent token"
         );
         _tokenURIs[tokenId] = uri;
 
@@ -236,7 +257,7 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _exists(tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
+            "ERC721: URI query for nonexistent token"
         );
         return _tokenURIs[tokenId];
 
@@ -271,7 +292,7 @@ contract Microsponsors is ERC721, Ownable {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721Burnable: caller is not owner nor approved"
+            "ERC721: caller is not owner nor approved"
         );
         _burn(tokenId);
 

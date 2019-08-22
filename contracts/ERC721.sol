@@ -99,7 +99,10 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to address to be approved for the given token ID
      * @param tokenId uint256 ID of the token to be approved
      */
-    function approve(address to, uint256 tokenId) public {
+    function approve(address to, uint256 tokenId)
+        public
+        onlyWhitelisted
+    {
 
         address owner = ownerOf(tokenId);
 
@@ -110,11 +113,6 @@ contract ERC721 is Context, ERC165, IERC721 {
 
         require(
             isWhitelisted(to),
-            "ERC721: approval restricted to whitelisted addresses"
-        );
-
-        require(
-            isWhitelisted(_msgSender()),
             "ERC721: approval restricted to whitelisted addresses"
         );
 
@@ -151,14 +149,12 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to operator address to set the approval
      * @param approved representing the status of the approval to be set
      */
-    function setApprovalForAll(address to, bool approved) public {
+    function setApprovalForAll(address to, bool approved)
+        public
+        onlyWhitelisted
+    {
 
         require(to != _msgSender(), "ERC721: approve to caller");
-
-        require(
-            isWhitelisted(_msgSender()),
-            "ERC721: approval restricted to whitelisted addresses"
-        );
 
         require(
             isWhitelisted(to),
@@ -194,7 +190,10 @@ contract ERC721 is Context, ERC165, IERC721 {
      * @param to address to receive the ownership of the given token ID
      * @param tokenId uint256 ID of the token to be transferred
      */
-    function transferFrom(address from, address to, uint256 tokenId) public {
+    function transferFrom(address from, address to, uint256 tokenId)
+        public
+        onlyWhitelisted
+    {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
@@ -246,6 +245,7 @@ contract ERC721 is Context, ERC165, IERC721 {
      */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory _data)
         public
+        onlyWhitelisted
     {
 
         require(
@@ -315,6 +315,7 @@ contract ERC721 is Context, ERC165, IERC721 {
     function _isApprovedOrOwner(address spender, uint256 tokenId)
         internal
         view
+        onlyWhitelisted
         returns (bool)
     {
 
