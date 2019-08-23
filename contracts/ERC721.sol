@@ -25,6 +25,10 @@ contract ERC721 is ERC165, IERC721 {
     using Address for address;
     using Counters for Counters.Counter;
 
+
+    /***  Contract data  ***/
+
+
     // This contract's owner (administator)
     address public owner;
 
@@ -46,6 +50,9 @@ contract ERC721 is ERC165, IERC721 {
 
     // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
+
+    // Mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
 
     // Pause. When true, token minting and transfers stop.
     bool public paused = false;
@@ -76,6 +83,7 @@ contract ERC721 is ERC165, IERC721 {
         owner = _msgSender();
     }
 
+
     /*
      * @dev Provides information about the current execution context, including the
      * sender of the transaction and its data. While these are generally available
@@ -99,6 +107,10 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+
+    /***  Owner (Administrator) functions  ***/
+
+
     /*
      * @dev Sets the contract's owner (administrator)
      * Based on 0x's Ownable, but modified here
@@ -121,7 +133,6 @@ contract ERC721 is ERC165, IERC721 {
         }
     }
 
-
     /**
      * @dev Update address for Microsponsors Registry contract
      * @param newAddress where the Registry contract lives
@@ -132,6 +143,9 @@ contract ERC721 is ERC165, IERC721 {
     {
         registry = DeployedRegistry(newAddress);
     }
+
+
+    /***  User account permissions  ***/
 
 
     /**
@@ -178,6 +192,209 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
+    /***  Minting tokens  ***/
+
+
+    /**
+     * @dev Function to mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param tokenId The token id to mint.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function mint(address to, uint256 tokenId)
+        public
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
+
+        _mint(to, tokenId);
+        return true;
+
+    }
+
+    // solhint-disable
+    /**
+     * Customized for Microsponsors from:
+     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
+     *
+     * @dev Function to mint tokens.
+     * @param to The address that will receive the minted tokens.
+     * @param tokenId The token id to mint.
+     * @param tokenURI The token URI of the minted token.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    // solhint-enable
+    function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+        public
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
+
+        _mint(to, tokenId);
+        _setTokenURI(tokenId, tokenURI);
+        return true;
+
+    }
+
+    /**
+     * @dev Function to safely mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param tokenId The token id to mint.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function safeMint(address to, uint256 tokenId)
+        public
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
+
+        _safeMint(to, tokenId);
+        return true;
+
+    }
+
+    /**
+     * @dev Function to safely mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param tokenId The token id to mint.
+     * @param _data bytes data to send along with a safe transfer check.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function safeMint(address to, uint256 tokenId, bytes memory _data)
+        public
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
+
+        _safeMint(to, tokenId, _data);
+        return true;
+
+    }
+
+    // solhint-disable
+    /**
+     * Customized for Microsponsors from
+     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
+     *
+     * @dev Function to safely mint tokens.
+     * @param to The address that will receive the minted tokens.
+     * @param tokenId The token id to mint.
+     * @param tokenURI The token URI of the minted token.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    // solhint-enable
+    function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+        public
+        onlyMinter
+        whenNotPaused
+        returns (bool)
+    {
+
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, tokenURI);
+        return true;
+
+    }
+
+    /**
+     * @dev Internal function to safely mint a new token.
+     * Reverts if the given token ID already exists.
+     * If the target address is a contract, it must implement `onERC721Received`,
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * @param to The address that will own the minted token
+     * @param tokenId uint256 ID of the token to be minted
+     */
+    function _safeMint(address to, uint256 tokenId) internal {
+
+        _safeMint(to, tokenId, "");
+
+    }
+
+    /**
+     * @dev Internal function to safely mint a new token.
+     * Reverts if the given token ID already exists.
+     * If the target address is a contract, it must implement `onERC721Received`,
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * @param to The address that will own the minted token
+     * @param tokenId uint256 ID of the token to be minted
+     * @param _data bytes data to send along with a safe transfer check
+     */
+    function _safeMint(address to, uint256 tokenId, bytes memory _data) internal {
+
+        _mint(to, tokenId);
+
+        require(
+            _checkOnERC721Received(address(0), to, tokenId, _data),
+            "ERC721: transfer to non ERC721Receiver implementer"
+        );
+
+    }
+
+    /**
+     * @dev Internal function to mint a new token.
+     * Reverts if the given token ID already exists.
+     * @param to The address that will own the minted token
+     * @param tokenId uint256 ID of the token to be minted
+     */
+    function _mint(address to, uint256 tokenId) internal {
+
+        require(to != address(0), "ERC721: mint to the zero address");
+        require(!_exists(tokenId), "ERC721: token already minted");
+
+        _tokenOwner[tokenId] = to;
+        _ownedTokensCount[to].increment();
+
+        emit Transfer(address(0), to, tokenId);
+
+    }
+
+
+    /***  Token URIs  ***/
+
+
+    /**
+     * @dev Internal function to set the token URI for a given token.
+     * Reverts if the token ID does not exist.
+     * @param tokenId uint256 ID of the token to set its URI
+     * @param uri string URI to assign
+     */
+    function _setTokenURI(uint256 tokenId, string memory uri) internal {
+
+        require(
+            _exists(tokenId),
+            "ERC721: URI set of nonexistent token"
+        );
+        _tokenURIs[tokenId] = uri;
+
+    }
+
+    /**
+     * @dev Returns an URI for a given token ID.
+     * Throws if the token ID does not exist. May return an empty string.
+     * @param tokenId uint256 ID of the token to query
+     */
+    function tokenURI(uint256 tokenId) external view returns (string memory) {
+
+        require(
+            _exists(tokenId),
+            "ERC721: URI query for nonexistent token"
+        );
+        return _tokenURIs[tokenId];
+
+    }
+
+
+    /***  Query balanceOf() a token holder's account  ***/
+
+
     /**
      * @dev Gets the balance of the specified address.
      * @param tokenOwner address to query the balance of
@@ -193,6 +410,10 @@ contract ERC721 is ERC165, IERC721 {
         return _ownedTokensCount[tokenOwner].current();
 
     }
+
+
+    /***  Transfers  ***/
+
 
     /**
      * @dev Gets the owner of the specified token ID.
@@ -466,96 +687,6 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Internal function to safely mint a new token.
-     * Reverts if the given token ID already exists.
-     * If the target address is a contract, it must implement `onERC721Received`,
-     * which is called upon a safe transfer, and return the magic value
-     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
-     * the transfer is reverted.
-     * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
-     */
-    function _safeMint(address to, uint256 tokenId) internal {
-
-        _safeMint(to, tokenId, "");
-
-    }
-
-    /**
-     * @dev Internal function to safely mint a new token.
-     * Reverts if the given token ID already exists.
-     * If the target address is a contract, it must implement `onERC721Received`,
-     * which is called upon a safe transfer, and return the magic value
-     * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
-     * the transfer is reverted.
-     * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
-     * @param _data bytes data to send along with a safe transfer check
-     */
-    function _safeMint(address to, uint256 tokenId, bytes memory _data) internal {
-
-        _mint(to, tokenId);
-
-        require(
-            _checkOnERC721Received(address(0), to, tokenId, _data),
-            "ERC721: transfer to non ERC721Receiver implementer"
-        );
-
-    }
-
-    /**
-     * @dev Internal function to mint a new token.
-     * Reverts if the given token ID already exists.
-     * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
-     */
-    function _mint(address to, uint256 tokenId) internal {
-
-        require(to != address(0), "ERC721: mint to the zero address");
-        require(!_exists(tokenId), "ERC721: token already minted");
-
-        _tokenOwner[tokenId] = to;
-        _ownedTokensCount[to].increment();
-
-        emit Transfer(address(0), to, tokenId);
-
-    }
-
-    /**
-     * @dev Internal function to burn a specific token.
-     * Reverts if the token does not exist.
-     * Deprecated, use {_burn} instead.
-     * @param tokenOwner owner of the token to burn
-     * @param tokenId uint256 ID of the token being burned
-     */
-    function _burn(address tokenOwner, uint256 tokenId) internal {
-
-        require(
-            ownerOf(tokenId) == tokenOwner,
-            "ERC721: burn of token that is not own"
-        );
-
-        _clearApproval(tokenId);
-
-        _ownedTokensCount[tokenOwner].decrement();
-        _tokenOwner[tokenId] = address(0);
-
-        emit Transfer(tokenOwner, address(0), tokenId);
-
-    }
-
-    /**
-     * @dev Internal function to burn a specific token.
-     * Reverts if the token does not exist.
-     * @param tokenId uint256 ID of the token being burned
-     */
-    function _burn(uint256 tokenId) internal {
-
-        _burn(ownerOf(tokenId), tokenId);
-
-    }
-
-    /**
      * @dev Internal function to transfer ownership of a given token ID to another address.
      * As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
      * @param from current owner of the token
@@ -623,7 +754,69 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /*** Pausable adapted from OpenZeppelin via Cryptokitties ***/
+    /***  Burn Tokens  ***/
+
+
+    // solhint-disable
+    /**
+     * Customized for Microsponsors
+     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Burnable.sol     * @dev Burns a specific ERC721 token.
+     * @param tokenId uint256 id of the ERC721 token to be burned.
+     */
+     // solhint-enable
+    function burn(uint256 tokenId) public whenNotPaused {
+
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "ERC721: caller is not token owner nor approved"
+        );
+
+        _burn(tokenId);
+
+    }
+
+
+    /**
+     * @dev Internal function to burn a specific token.
+     * Reverts if the token does not exist.
+     * Deprecated, use {_burn} instead.
+     * @param tokenOwner owner of the token to burn
+     * @param tokenId uint256 ID of the token being burned
+     */
+    function _burn(address tokenOwner, uint256 tokenId) internal {
+
+        require(
+            ownerOf(tokenId) == tokenOwner,
+            "ERC721: burn of token that is not own"
+        );
+
+        _clearApproval(tokenId);
+
+        _ownedTokensCount[tokenOwner].decrement();
+        _tokenOwner[tokenId] = address(0);
+
+        // Clear metadata (if any)
+        if (bytes(_tokenURIs[tokenId]).length != 0) {
+            delete _tokenURIs[tokenId];
+        }
+
+        emit Transfer(tokenOwner, address(0), tokenId);
+
+    }
+
+    /**
+     * @dev Internal function to burn a specific token.
+     * Reverts if the token does not exist.
+     * @param tokenId uint256 ID of the token being burned
+     */
+    function _burn(uint256 tokenId) internal {
+
+        _burn(ownerOf(tokenId), tokenId);
+
+    }
+
+
+    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
 
 
     /// @dev Modifier to allow actions only when the contract IS NOT paused
