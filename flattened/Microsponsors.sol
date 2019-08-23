@@ -1319,21 +1319,4 @@ contract Microsponsors is ERC721 {
         return _symbol;
     }
 
-    // solhint-disable
-    /**
-     * Customized for Microsponsors
-     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Burnable.sol     * @dev Burns a specific ERC721 token.
-     * @param tokenId uint256 id of the ERC721 token to be burned.
-     */
-     // solhint-enable
-    function burn(uint256 tokenId) public whenNotPaused {
-
-        require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: caller is not owner nor approved"
-        );
-        _burn(tokenId);
-
-    }
-
 }
