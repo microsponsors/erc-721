@@ -14,7 +14,8 @@ $ npm run lint
 
 #### Local Deploy
 * Start Ganache in another terminal: `$ ganache-cli -p 8545`
-* Compile: `$ npm run compile`. Deploy to local ganache instance: `$ truffle migrate --network development `
+* Compile: `$ npm run compile`.
+* Deploy to local ganache instance: `$ truffle migrate --network development `
 * Or... Compile & Deploy in one step: `$ npm run deploy`
 
 #### Flatten for Remix Deploy

@@ -6,7 +6,8 @@ module.exports = function(deployer) {
     Microsponsors,
     "MicrosponsorsTest", // Name
     "MSPTest", // Symbol
-    "0xea442e73c98197954d38a02540204cb1a424a405" // Microsponsors Registry address
+    // Microsponsors Registry address on Kovan:
+    "0xd668f99c616eb657df5c45673d6897dd29b069c9"
    );
 
 };
