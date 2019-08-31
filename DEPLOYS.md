@@ -2,7 +2,7 @@
 
 ### 2019.0831
 git tag: v0.2
-* [Kovan]
+* [Kovan](https://kovan.etherscan.io/address/0x8c40d53f683bffa8719df9b9ee68b6905de3705a)0x8c40d53f683bffa8719df9b9ee68b6905de3705a
 
 ### 2019.08.26
 git tag: v0.1

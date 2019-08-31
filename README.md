@@ -11,6 +11,10 @@ Install [solhint](https://www.npmjs.com/package/solhint) globally and run the li
 $ npm install -g solhint
 $ npm run lint
 ```
+#### Compiler Versioning
+* Compiler: 0.5.11
+
+Note that the .sol files are marked `pragma solidity ^0.5.11` and we're using that version in in truffle-config.js `compilers.solc.version`.
 
 #### Local Deploy
 * Start Ganache in another terminal: `$ ganache-cli -p 8545`
@@ -20,11 +24,6 @@ $ npm run lint
 
 #### Flatten for Remix Deploy
 * `$ npm run flatten`
-
-#### Versioning
-* Compiler: 0.5.11
-
-Note that the .sol files are marked `pragma solidity ^0.5.11` and we're using that version in in truffle-config.js `compilers.solc.version`.
 
 #### Remix & Versioning
 In Remix, there is a warning about the use of `extcodehash` unless you compile with the following settings:
