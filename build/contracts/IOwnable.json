@@ -28,14 +28,14 @@
     "absolutePath": "/Users/lauren/github/erc-721/contracts/IOwnable.sol",
     "exportedSymbols": {
       "IOwnable": [
-        1384
+        1350
       ]
     },
-    "id": 1385,
+    "id": 1351,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1378,
+        "id": 1344,
         "literals": [
           "solidity",
           "^",
@@ -51,9 +51,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1384,
+        "id": 1350,
         "linearizedBaseContracts": [
-          1384
+          1350
         ],
         "name": "IOwnable",
         "nodeType": "ContractDefinition",
@@ -61,22 +61,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1383,
+            "id": 1349,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "transferOwnership",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1381,
+              "id": 1347,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1380,
+                  "id": 1346,
                   "name": "newOwner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1383,
+                  "scope": 1349,
                   "src": "263:16:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -85,7 +85,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1379,
+                    "id": 1345,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "263:7:8",
@@ -102,19 +102,19 @@
               "src": "262:18:8"
             },
             "returnParameters": {
-              "id": 1382,
+              "id": 1348,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "295:0:8"
             },
-            "scope": 1384,
+            "scope": 1350,
             "src": "236:60:8",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 1385,
+        "scope": 1351,
         "src": "211:87:8"
       }
     ],
@@ -124,14 +124,14 @@
     "absolutePath": "/Users/lauren/github/erc-721/contracts/IOwnable.sol",
     "exportedSymbols": {
       "IOwnable": [
-        1384
+        1350
       ]
     },
-    "id": 1385,
+    "id": 1351,
     "nodeType": "SourceUnit",
     "nodes": [
       {
-        "id": 1378,
+        "id": 1344,
         "literals": [
           "solidity",
           "^",
@@ -147,9 +147,9 @@
         "contractKind": "contract",
         "documentation": null,
         "fullyImplemented": false,
-        "id": 1384,
+        "id": 1350,
         "linearizedBaseContracts": [
-          1384
+          1350
         ],
         "name": "IOwnable",
         "nodeType": "ContractDefinition",
@@ -157,22 +157,22 @@
           {
             "body": null,
             "documentation": null,
-            "id": 1383,
+            "id": 1349,
             "implemented": false,
             "kind": "function",
             "modifiers": [],
             "name": "transferOwnership",
             "nodeType": "FunctionDefinition",
             "parameters": {
-              "id": 1381,
+              "id": 1347,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 1380,
+                  "id": 1346,
                   "name": "newOwner",
                   "nodeType": "VariableDeclaration",
-                  "scope": 1383,
+                  "scope": 1349,
                   "src": "263:16:8",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -181,7 +181,7 @@
                     "typeString": "address"
                   },
                   "typeName": {
-                    "id": 1379,
+                    "id": 1345,
                     "name": "address",
                     "nodeType": "ElementaryTypeName",
                     "src": "263:7:8",
@@ -198,19 +198,19 @@
               "src": "262:18:8"
             },
             "returnParameters": {
-              "id": 1382,
+              "id": 1348,
               "nodeType": "ParameterList",
               "parameters": [],
               "src": "295:0:8"
             },
-            "scope": 1384,
+            "scope": 1350,
             "src": "236:60:8",
             "stateMutability": "nonpayable",
             "superFunction": null,
             "visibility": "public"
           }
         ],
-        "scope": 1385,
+        "scope": 1351,
         "src": "211:87:8"
       }
     ],
@@ -222,7 +222,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.10",
-  "updatedAt": "2019-08-23T19:58:41.190Z",
+  "updatedAt": "2019-08-31T19:54:45.448Z",
   "devdoc": {
     "methods": {}
   },
