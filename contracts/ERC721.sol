@@ -39,6 +39,9 @@ contract ERC721 is ERC165, IERC721 {
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
+    // All token ids minted, incremented from 0
+    uint256 private _tokenIds = Counters.Counter;
+
     // Mapping from token ID to token owner
     mapping (uint256 => address) private _tokenOwner;
 
@@ -392,8 +395,17 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Query balanceOf() a token holder's account  ***/
+    /***  Token data queries  ***/
 
+
+    /**
+     * @dev Gets the total number of tokens ever minted.
+     */
+    function totalSupply() public view returns (uint256) {
+
+        return _tokenIds.current();
+
+    }
 
     /**
      * @dev Gets the balance of the specified address.
@@ -411,10 +423,6 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-
-    /***  Transfers  ***/
-
-
     /**
      * @dev Gets the owner of the specified token ID.
      * @param tokenId uint256 ID of the token to query the owner of
@@ -431,6 +439,44 @@ contract ERC721 is ERC165, IERC721 {
         return tokenOwner;
 
     }
+
+    /**
+     * @param _owner The owner whose Kit we are interested in.
+     * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
+     *  expensive (it walks the entire Kitty array looking for cats belonging to owner),
+     *  but it also returns a dynamic array, which is only supported for web3 calls, and
+     *  not contract-to-contract calls.
+     * @return uint256 Returns a list of all token id's assigned to an address.
+    */
+    function tokensOfOwner(address tokenOwner) external view returns(uint256[] result) {
+        uint256 tokenCount = balanceOf(tokenOwner);
+
+        if (tokenCount == 0) {
+            // Return an empty array
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 totalTokens = totalSupply();
+            uint256 resultIndex = 0;
+
+            // We count on the fact that all tokens have IDs starting at 1 and increase
+            // sequentially up to the total count.
+            uint256 tokenId;
+
+            for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
+                if (_tokenOwner[tokenId] == tokenOwner) {
+                    result[resultIndex] = tokenId;
+                    resultIndex++;
+                }
+            }
+
+            return result;
+        }
+    }
+
+
+    /***  Transfers  ***/
+
 
     /**
      * @dev Approves another address to transfer the given token ID

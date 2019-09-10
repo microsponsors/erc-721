@@ -31,4 +31,3 @@ In Remix, there is a warning about the use of `extcodehash` unless you compile w
 * Compiler 0.5.11
 * Language Solidity
 * EVM Version: `petersburg`
-
