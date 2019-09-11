@@ -476,7 +476,7 @@ contract ERC721 is ERC165, IERC721 {
         string memory contentId,
         uint32 startTime,
         uint32 endTime
-    ) internal returns (bool) {
+    ) internal pure returns (bool) {
 
         require(
             endTime > startTime,
@@ -518,7 +518,7 @@ contract ERC721 is ERC165, IERC721 {
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
-            string contentId,
+            string memory contentId,
             uint32 startTime,
             uint32 endTime
     ) {
