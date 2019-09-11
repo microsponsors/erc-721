@@ -41,31 +41,39 @@ contract ERC721 is ERC165, IERC721 {
     // All token ids minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
-    // Mapping from token ID to token owner
+    // Mapping from Token ID to Token Owner
     mapping (uint256 => address) private _tokenOwner;
 
-    // Mapping from token ID to approved address
-    mapping (uint256 => address) private _tokenApprovals;
-
-    // Mapping from token owner to number of owned token
+    // Mapping from Token Owner to # of owned tokens
     mapping (address => Counters.Counter) private _ownedTokensCount;
 
-    // Mapping from token owner to operator approvals
-    mapping (address => mapping (address => bool)) private _operatorApprovals;
-
-    // Token's time slot metadata
+    // A Token's TimeSlot metadata
     struct TimeSlot {
-        string contentId; // the property that whose time slots are tokenized
-        bytes32 desc; // short description of time slot
-        uint32 startTime; // timestamp for when sponsorship begins
-        uint32 endTime; // max timestamp of sponsorship (when it ends)
+        string contentId; // the registered contentId containing the Property
+        bytes32 propertyName; // describes the Property within the contentId that is tokenized into time slots
+        uint32 startTime; // min timestamp (when it begins)
+        uint32 endTime; // max timestamp (when it ends)
     }
 
-    // Mapping from token ID to time slot struct
+    // Mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
-    // Mapping from token ID to token URIs
+    // Mapping from Token Owner => string ContentId => array of Property Names
+    // Used to display all tokenized time slots on a property.
+    // Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
+    struct PropertyNameStruct {
+        bytes32 propertyName;
+    }
+    mapping(address => mapping(string => PropertyNameStruct[])) private _tokenOwnerToPropertyNames;
+
+    // Mapping from Token ID to Token URIs
     mapping(uint256 => string) private _tokenURIs;
+
+    // Mapping from Token ID to Approved Address
+    mapping (uint256 => address) private _tokenApprovals;
+
+    // Mapping from Token Owner to Operator Approvals
+    mapping (address => mapping (address => bool)) private _operatorApprovals;
 
     // Pause. When true, token minting and transfers stop.
     bool public paused = false;
@@ -216,7 +224,7 @@ contract ERC721 is ERC165, IERC721 {
     function mint(
         address to,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime
     )
@@ -232,7 +240,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(to);
-        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime);
 
         return tokenId;
 
@@ -252,7 +260,7 @@ contract ERC721 is ERC165, IERC721 {
     function mintWithTokenURI(
         address to,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime,
         string memory tokenURI
@@ -269,7 +277,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(to);
-        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -284,7 +292,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         address to,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime
     )
@@ -300,7 +308,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to);
-        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime);
 
         return tokenId;
 
@@ -315,7 +323,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         address to,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime,
         bytes memory data
@@ -332,7 +340,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to, data);
-        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime);
 
         return tokenId;
 
@@ -352,7 +360,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMintWithTokenURI(
         address to,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime,
         string memory tokenURI
@@ -369,7 +377,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to);
-        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -503,7 +511,7 @@ contract ERC721 is ERC165, IERC721 {
     function _setTokenTimeSlot(
         uint256 tokenId,
         string memory contentId,
-        bytes32 desc,
+        bytes32 propertyName,
         uint32 startTime,
         uint32 endTime
     ) internal {
@@ -515,19 +523,19 @@ contract ERC721 is ERC165, IERC721 {
 
         TimeSlot memory _timeSlot = TimeSlot({
             contentId: string(contentId),
-            desc: bytes32(desc),
+            propertyName: bytes32(propertyName),
             startTime: uint32(startTime),
             endTime: uint32(endTime)
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
-
+        _tokenOwnerToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
     }
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
             string memory contentId,
-            bytes32 desc,
+            bytes32 propertyName,
             uint32 startTime,
             uint32 endTime
     ) {
@@ -539,7 +547,7 @@ contract ERC721 is ERC165, IERC721 {
 
         return (
             _tokenToTimeSlot[tokenId].contentId,
-            _tokenToTimeSlot[tokenId].desc,
+            _tokenToTimeSlot[tokenId].propertyName,
             _tokenToTimeSlot[tokenId].startTime,
             _tokenToTimeSlot[tokenId].endTime
         );
