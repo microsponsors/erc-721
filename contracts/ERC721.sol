@@ -49,7 +49,8 @@ contract ERC721 is ERC165, IERC721 {
 
     // A Token's TimeSlot metadata
     struct TimeSlot {
-        string contentId; // the registered contentId containing the Property
+        address minter; // the address of the user who mint()'ed this time slot
+        string contentId; // the users' registered contentId containing the Property
         bytes32 propertyName; // describes the Property within the contentId that is tokenized into time slots
         uint32 startTime; // min timestamp (when it begins)
         uint32 endTime; // max timestamp (when it ends)
@@ -64,7 +65,7 @@ contract ERC721 is ERC165, IERC721 {
     struct PropertyNameStruct {
         bytes32 propertyName;
     }
-    mapping(address => mapping(string => PropertyNameStruct[])) private _tokenOwnerToPropertyNames;
+    mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
     // Mapping from Token ID to Token URIs
     mapping(uint256 => string) private _tokenURIs;
@@ -522,6 +523,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         TimeSlot memory _timeSlot = TimeSlot({
+            minter: address(_msgSender()),
             contentId: string(contentId),
             propertyName: bytes32(propertyName),
             startTime: uint32(startTime),
@@ -529,11 +531,12 @@ contract ERC721 is ERC165, IERC721 {
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
-        _tokenOwnerToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
+        _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
     }
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
+            address minter,
             string memory contentId,
             bytes32 propertyName,
             uint32 startTime,
@@ -546,6 +549,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         return (
+            _tokenToTimeSlot[tokenId].minter,
             _tokenToTimeSlot[tokenId].contentId,
             _tokenToTimeSlot[tokenId].propertyName,
             _tokenToTimeSlot[tokenId].startTime,
