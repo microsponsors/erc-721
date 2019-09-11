@@ -427,6 +427,7 @@ pragma solidity ^0.5.11;
 // We just use the signatures of the parts we need to interact with:
 contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
+    function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
 }
 
 
@@ -442,7 +443,6 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  Contract data  ***/
 
-
     // This contract's owner (administator)
     address public owner;
 
@@ -453,7 +453,7 @@ contract ERC721 is ERC165, IERC721 {
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // All token ids minted, incremented from 0
+    // All token ids minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
     // Mapping from token ID to token owner
@@ -468,8 +468,18 @@ contract ERC721 is ERC165, IERC721 {
     // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    // Mapping for token URIs
+    // Mapping from token ID to token URIs
     mapping(uint256 => string) private _tokenURIs;
+
+    // Metadata about a token's time slot
+    struct TimeSlot {
+        string contentId; // the property that whose time slots are tokenized
+        uint32 startTime; // timestamp for when sponsorship begins
+        uint32 endTime; // max timestamp of sponsorship (when it ends)
+    }
+
+    // Mapping from token ID to time slot struct
+    mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
     // Pause. When true, token minting and transfers stop.
     bool public paused = false;
@@ -617,14 +627,26 @@ contract ERC721 is ERC165, IERC721 {
      * @param to The address that will receive the minted token.
      * @return tokenId
      */
-    function mint(address to)
+    function mint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _mint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+
         return tokenId;
 
     }
@@ -640,14 +662,26 @@ contract ERC721 is ERC165, IERC721 {
      * @return tokenId
      */
     // solhint-enable
-    function mintWithTokenURI(address to, string memory tokenURI)
+    function mintWithTokenURI(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        string memory tokenURI
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _mint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -659,14 +693,26 @@ contract ERC721 is ERC165, IERC721 {
      * @param to The address that will receive the minted token.
      * @return tokenId
      */
-    function safeMint(address to)
+    function safeMint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _safeMint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+
         return tokenId;
 
     }
@@ -674,17 +720,30 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param _data bytes data to send along with a safe transfer check.
+     * @param data bytes data to send along with a safe transfer check.
      * @return tokenId
      */
-    function safeMint(address to, bytes memory _data)
+    function safeMint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        bytes memory data
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
-        uint256 tokenId = _safeMint(to, _data);
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
+        uint256 tokenId = _safeMint(to, data);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+
         return tokenId;
 
     }
@@ -700,14 +759,26 @@ contract ERC721 is ERC165, IERC721 {
      * @return tokenId
      */
     // solhint-enable
-    function safeMintWithTokenURI(address to, string memory tokenURI)
+    function safeMintWithTokenURI(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        string memory tokenURI
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _safeMint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -814,7 +885,74 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Token data queries  ***/
+    /***  Token TimeSlot data  ***/
+
+
+    function _isValidTimeSlot(
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    ) internal view returns (bool) {
+
+        require(
+            registry.isContentIdRegisteredToCaller(contentId),
+            "ERC721: content id is not registered to caller"
+        );
+
+        require(
+            endTime > startTime,
+            "ERC721: token start time must be before end time"
+        );
+
+        return true;
+
+    }
+
+
+    function _setTokenTimeSlot(
+        uint256 tokenId,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    ) internal {
+
+        require(
+            _exists(tokenId),
+            "ERC721: URI set of nonexistent token"
+        );
+
+        TimeSlot memory _timeSlot = TimeSlot({
+            contentId: string(contentId),
+            startTime: uint32(startTime),
+            endTime: uint32(endTime)
+        });
+
+        _tokenToTimeSlot[tokenId] = _timeSlot;
+
+    }
+
+
+    function tokenTimeSlot(uint256 tokenId) external view returns (
+            string memory contentId,
+            uint32 startTime,
+            uint32 endTime
+    ) {
+
+        require(
+            _exists(tokenId),
+            "ERC721: Time slot query for nonexistent token id"
+        );
+
+        return (
+            _tokenToTimeSlot[tokenId].contentId,
+            _tokenToTimeSlot[tokenId].startTime,
+            _tokenToTimeSlot[tokenId].endTime
+        );
+
+    }
+
+
+    /***  Token balance and ownership queries  ***/
 
 
     /**

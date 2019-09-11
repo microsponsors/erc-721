@@ -477,7 +477,7 @@ contract ERC721 is ERC165, IERC721 {
         string memory contentId,
         uint32 startTime,
         uint32 endTime
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
 
         require(
             registry.isContentIdRegisteredToCaller(contentId),
