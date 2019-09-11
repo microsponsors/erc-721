@@ -12,6 +12,7 @@ import "./ERC165.sol";
 // We just use the signatures of the parts we need to interact with:
 contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
+    function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
 }
 
 
@@ -479,15 +480,14 @@ contract ERC721 is ERC165, IERC721 {
     ) internal pure returns (bool) {
 
         require(
+            registry.isContentIdRegisteredToCaller(contentId),
+            "ERC721: content id is not registered to caller"
+        );
+
+        require(
             endTime > startTime,
             "ERC721: token start time must be before end time"
         );
-
-        /**
-         *
-         * TODO: validate contentId belongs to msg.sender(!) via Registry
-         *
-         */
 
         return true;
 
