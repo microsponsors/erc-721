@@ -212,14 +212,25 @@ contract ERC721 is ERC165, IERC721 {
      * @param to The address that will receive the minted token.
      * @return tokenId
      */
-    function mint(address to)
+    function mint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _mint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
 
         return tokenId;
 
@@ -236,14 +247,26 @@ contract ERC721 is ERC165, IERC721 {
      * @return tokenId
      */
     // solhint-enable
-    function mintWithTokenURI(address to, string memory tokenURI)
+    function mintWithTokenURI(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        string memory tokenURI
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _mint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -255,14 +278,26 @@ contract ERC721 is ERC165, IERC721 {
      * @param to The address that will receive the minted token.
      * @return tokenId
      */
-    function safeMint(address to)
+    function safeMint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _safeMint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+
         return tokenId;
 
     }
@@ -270,17 +305,30 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param _data bytes data to send along with a safe transfer check.
+     * @param data bytes data to send along with a safe transfer check.
      * @return tokenId
      */
-    function safeMint(address to, bytes memory _data)
+    function safeMint(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        bytes memory data
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
-        uint256 tokenId = _safeMint(to, _data);
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
+        uint256 tokenId = _safeMint(to, data);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+
         return tokenId;
 
     }
@@ -296,14 +344,26 @@ contract ERC721 is ERC165, IERC721 {
      * @return tokenId
      */
     // solhint-enable
-    function safeMintWithTokenURI(address to, string memory tokenURI)
+    function safeMintWithTokenURI(
+        address to,
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime,
+        string memory tokenURI
+    )
         public
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime),
+            "ERC721: invalid time slot"
+        );
+
         uint256 tokenId = _safeMint(to);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -413,6 +473,28 @@ contract ERC721 is ERC165, IERC721 {
     /***  Token TimeSlot data  ***/
 
 
+    function _isValidTimeSlot(
+        string memory contentId,
+        uint32 startTime,
+        uint32 endTime
+    ) internal returns (bool) {
+
+        require(
+            endTime > startTime,
+            "ERC721: token start time must be before end time"
+        );
+
+        /**
+         *
+         * TODO: validate contentId belongs to msg.sender(!) via Registry
+         *
+         */
+
+        return true;
+
+    }
+
+
     function _setTokenTimeSlot(
         uint256 tokenId,
         string contentId,
@@ -424,17 +506,6 @@ contract ERC721 is ERC165, IERC721 {
             _exists(tokenId),
             "ERC721: URI set of nonexistent token"
         );
-
-        require(
-            startTime > endTime,
-            "ERC721: token start time must be before end time"
-        );
-
-        /**
-         *
-         * TODO: validate contentId belongs to msg.sender(!) via Registry
-         *
-         */
 
         TimeSlot memory _timeSlot = TimeSlot({
             contentId: string(contentId),
