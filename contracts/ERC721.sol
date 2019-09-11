@@ -201,18 +201,17 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Function to mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function mint(address to, uint256 tokenId)
+    function mint(address to)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _mint(to, tokenId);
-        return true;
+        uint256 tokenId = _mint(to);
+        return tokenId;
 
     }
 
@@ -223,20 +222,20 @@ contract ERC721 is ERC165, IERC721 {
      *
      * @dev Function to mint tokens.
      * @param to The address that will receive the minted tokens.
-     * @param tokenId The token id to mint.
      * @param tokenURI The token URI of the minted token.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
     // solhint-enable
-    function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+    function mintWithTokenURI(address to, string memory tokenURI)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _mint(to, tokenId);
+        uint256 tokenId = _mint(to);
         _setTokenURI(tokenId, tokenURI);
+
         return true;
 
     }
@@ -244,37 +243,35 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function safeMint(address to, uint256 tokenId)
+    function safeMint(address to)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId);
-        return true;
+        uint256 tokenId = _safeMint(to);
+        return tokenId;
 
     }
 
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
      * @param _data bytes data to send along with a safe transfer check.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function safeMint(address to, uint256 tokenId, bytes memory _data)
+    function safeMint(address to, bytes memory _data)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId, _data);
-        return true;
+        uint256 tokenId = _safeMint(to, _data);
+        return tokenId;
 
     }
 
@@ -285,21 +282,21 @@ contract ERC721 is ERC165, IERC721 {
      *
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted tokens.
-     * @param tokenId The token id to mint.
      * @param tokenURI The token URI of the minted token.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
     // solhint-enable
-    function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+    function safeMintWithTokenURI(address to, string memory tokenURI)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId);
+        uint256 tokenId = _safeMint(to);
         _setTokenURI(tokenId, tokenURI);
-        return true;
+
+        return tokenId;
 
     }
 
@@ -311,11 +308,12 @@ contract ERC721 is ERC165, IERC721 {
      * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
+     * @return tokenId
      */
-    function _safeMint(address to, uint256 tokenId) internal {
+    function _safeMint(address to) internal returns (uint256) {
 
-        _safeMint(to, tokenId, "");
+        uint256 tokenId = _safeMint(to, "");
+        return tokenId;
 
     }
 
@@ -327,17 +325,19 @@ contract ERC721 is ERC165, IERC721 {
      * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
      * @param _data bytes data to send along with a safe transfer check
+     * @return tokenId
      */
-    function _safeMint(address to, uint256 tokenId, bytes memory _data) internal {
+    function _safeMint(address to, bytes memory _data) internal returns (uint256) {
 
-        _mint(to, tokenId);
+        uint256 tokenId = _mint(to);
 
         require(
             _checkOnERC721Received(address(0), to, tokenId, _data),
             "ERC721: transfer to non ERC721Receiver implementer"
         );
+
+        return tokenId;
 
     }
 
@@ -345,17 +345,20 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Internal function to mint a new token.
      * Reverts if the given token ID already exists.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
      */
-    function _mint(address to, uint256 tokenId) internal {
+    function _mint(address to) internal returns (uint256) {
 
         require(to != address(0), "ERC721: mint to the zero address");
-        require(!_exists(tokenId), "ERC721: token already minted");
+
+        _tokenIds.increment();
+        uint256 tokenId = _tokenIds.current();
 
         _tokenOwner[tokenId] = to;
         _ownedTokensCount[to].increment();
 
         emit Transfer(address(0), to, tokenId);
+
+        return tokenId;
 
     }
 
@@ -375,6 +378,7 @@ contract ERC721 is ERC165, IERC721 {
             _exists(tokenId),
             "ERC721: URI set of nonexistent token"
         );
+
         _tokenURIs[tokenId] = uri;
 
     }
@@ -390,6 +394,7 @@ contract ERC721 is ERC165, IERC721 {
             _exists(tokenId),
             "ERC721: URI query for nonexistent token"
         );
+
         return _tokenURIs[tokenId];
 
     }
