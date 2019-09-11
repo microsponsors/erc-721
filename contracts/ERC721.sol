@@ -38,7 +38,7 @@ contract ERC721 is ERC165, IERC721 {
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // All token ids minted, incremented from 0
+    // All token ids minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
     // Mapping from token ID to token owner
