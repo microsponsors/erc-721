@@ -28,7 +28,6 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  Contract data  ***/
 
-
     // This contract's owner (administator)
     address public owner;
 
@@ -54,8 +53,18 @@ contract ERC721 is ERC165, IERC721 {
     // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    // Mapping for token URIs
+    // Mapping from token ID to token URIs
     mapping(uint256 => string) private _tokenURIs;
+
+    // Metadata about a token's time slot
+    struct TimeSlot {
+        string contentId; // the property that whose time slots are tokenized
+        uint32 startTime; // timestamp for when sponsorship begins
+        uint32 endTime; // max timestamp of sponsorship (when it ends)
+    }
+
+    // Mapping from token ID to time slot struct
+    mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
     // Pause. When true, token minting and transfers stop.
     bool public paused = false;
@@ -211,6 +220,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         uint256 tokenId = _mint(to);
+
         return tokenId;
 
     }
@@ -400,7 +410,56 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Token data queries  ***/
+    /***  Token TimeSlot data  ***/
+
+
+    function _setTokenTimeSlot(
+        uint256 tokenId,
+        string contentId,
+        uint32 startTime,
+        uint32 endTime
+    ) internal {
+
+        require(
+            _exists(tokenId),
+            "ERC721: URI set of nonexistent token"
+        );
+
+        require(
+            startTime > endTime,
+            "ERC721: token start time must be before end time"
+        );
+
+        /**
+         *
+         * TODO: validate contentId belongs to msg.sender(!) via Registry
+         *
+         */
+
+        TimeSlot memory _timeSlot = TimeSlot({
+            contentId: string(contentId),
+            startTime: uint32(startTime),
+            endTime: uint32(endTime)
+        });
+
+        _tokenToTimeSlot[tokenId] = _timeSlot;
+
+    }
+
+
+    function tokenTimeSlot(uint256 tokenId) external view returns (TimeSlot) {
+
+        require(
+            _exists(tokenId),
+            "ERC721: Time slot query for nonexistent token id"
+        );
+
+        return _tokenToTimeSlot[tokenId];
+
+    }
+
+
+    /***  Token balance and ownership queries  ***/
 
 
     /**
