@@ -1,6 +1,5 @@
 pragma solidity ^0.5.11;
 
-
 import "./IERC721.sol";
 import "./IERC721Receiver.sol";
 import "./SafeMath.sol";
@@ -497,7 +496,7 @@ contract ERC721 is ERC165, IERC721 {
 
     function _setTokenTimeSlot(
         uint256 tokenId,
-        string contentId,
+        string memory contentId,
         uint32 startTime,
         uint32 endTime
     ) internal {
@@ -518,14 +517,22 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    function tokenTimeSlot(uint256 tokenId) external view returns (TimeSlot) {
+    function tokenTimeSlot(uint256 tokenId) external view returns (
+            string contentId,
+            uint32 startTime,
+            uint32 endTime
+    ) {
 
         require(
             _exists(tokenId),
             "ERC721: Time slot query for nonexistent token id"
         );
 
-        return _tokenToTimeSlot[tokenId];
+        return (
+            _tokenToTimeSlot[tokenId].contentId,
+            _tokenToTimeSlot[tokenId].startTime,
+            _tokenToTimeSlot[tokenId].endTime
+        );
 
     }
 
