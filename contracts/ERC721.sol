@@ -56,6 +56,7 @@ contract ERC721 is ERC165, IERC721 {
     // Token's time slot metadata
     struct TimeSlot {
         string contentId; // the property that whose time slots are tokenized
+        bytes32 desc; // short description of time slot
         uint32 startTime; // timestamp for when sponsorship begins
         uint32 endTime; // max timestamp of sponsorship (when it ends)
     }
@@ -215,6 +216,7 @@ contract ERC721 is ERC165, IERC721 {
     function mint(
         address to,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime
     )
@@ -230,7 +232,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(to);
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
 
         return tokenId;
 
@@ -250,6 +252,7 @@ contract ERC721 is ERC165, IERC721 {
     function mintWithTokenURI(
         address to,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime,
         string memory tokenURI
@@ -266,7 +269,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(to);
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -281,6 +284,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         address to,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime
     )
@@ -296,7 +300,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to);
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
 
         return tokenId;
 
@@ -311,6 +315,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         address to,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime,
         bytes memory data
@@ -327,7 +332,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to, data);
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
 
         return tokenId;
 
@@ -347,6 +352,7 @@ contract ERC721 is ERC165, IERC721 {
     function safeMintWithTokenURI(
         address to,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime,
         string memory tokenURI
@@ -363,7 +369,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(to);
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime);
+        _setTokenTimeSlot(tokenId, contentId, desc, startTime, endTime);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -398,12 +404,12 @@ contract ERC721 is ERC165, IERC721 {
      * @param _data bytes data to send along with a safe transfer check
      * @return tokenId
      */
-    function _safeMint(address to, bytes memory _data) internal returns (uint256) {
+    function _safeMint(address to, bytes memory data) internal returns (uint256) {
 
         uint256 tokenId = _mint(to);
 
         require(
-            _checkOnERC721Received(address(0), to, tokenId, _data),
+            _checkOnERC721Received(address(0), to, tokenId, data),
             "ERC721: transfer to non ERC721Receiver implementer"
         );
 
@@ -497,6 +503,7 @@ contract ERC721 is ERC165, IERC721 {
     function _setTokenTimeSlot(
         uint256 tokenId,
         string memory contentId,
+        bytes32 desc,
         uint32 startTime,
         uint32 endTime
     ) internal {
@@ -508,6 +515,7 @@ contract ERC721 is ERC165, IERC721 {
 
         TimeSlot memory _timeSlot = TimeSlot({
             contentId: string(contentId),
+            desc: bytes32(desc),
             startTime: uint32(startTime),
             endTime: uint32(endTime)
         });
@@ -519,6 +527,7 @@ contract ERC721 is ERC165, IERC721 {
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
             string memory contentId,
+            bytes32 desc,
             uint32 startTime,
             uint32 endTime
     ) {
@@ -530,6 +539,7 @@ contract ERC721 is ERC165, IERC721 {
 
         return (
             _tokenToTimeSlot[tokenId].contentId,
+            _tokenToTimeSlot[tokenId].desc,
             _tokenToTimeSlot[tokenId].startTime,
             _tokenToTimeSlot[tokenId].endTime
         );
