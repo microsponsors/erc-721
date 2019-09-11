@@ -468,10 +468,7 @@ contract ERC721 is ERC165, IERC721 {
     // Mapping from token owner to operator approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    // Mapping from token ID to token URIs
-    mapping(uint256 => string) private _tokenURIs;
-
-    // Metadata about a token's time slot
+    // Token's time slot metadata
     struct TimeSlot {
         string contentId; // the property that whose time slots are tokenized
         uint32 startTime; // timestamp for when sponsorship begins
@@ -480,6 +477,9 @@ contract ERC721 is ERC165, IERC721 {
 
     // Mapping from token ID to time slot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
+
+    // Mapping from token ID to token URIs
+    mapping(uint256 => string) private _tokenURIs;
 
     // Pause. When true, token minting and transfers stop.
     bool public paused = false;
@@ -1375,10 +1375,13 @@ contract ERC721 is ERC165, IERC721 {
         _ownedTokensCount[tokenOwner].decrement();
         _tokenOwner[tokenId] = address(0);
 
-        // Clear metadata (if any)
+        // Clear token URIs (if any)
         if (bytes(_tokenURIs[tokenId]).length != 0) {
             delete _tokenURIs[tokenId];
         }
+
+        // Clear time slot data
+        delete _tokenToTimeSlot[tokenId];
 
         emit Transfer(tokenOwner, address(0), tokenId);
 
