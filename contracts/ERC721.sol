@@ -40,7 +40,7 @@ contract ERC721 is ERC165, IERC721 {
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
     // All token ids minted, incremented from 0
-    uint256 private _tokenIds = Counters.Counter;
+    Counters.Counter _tokenIds;
 
     // Mapping from token ID to token owner
     mapping (uint256 => address) private _tokenOwner;
@@ -236,7 +236,7 @@ contract ERC721 is ERC165, IERC721 {
         uint256 tokenId = _mint(to);
         _setTokenURI(tokenId, tokenURI);
 
-        return true;
+        return tokenId;
 
     }
 
@@ -446,14 +446,14 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @param _owner The owner whose Kit we are interested in.
+     * @param tokenOwner The owner whose tokens we are interested in.
      * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
-     *  expensive (it walks the entire Kitty array looking for cats belonging to owner),
+     *  expensive (it walks the entire _tokenIds array looking for tokens belonging to owner),
      *  but it also returns a dynamic array, which is only supported for web3 calls, and
      *  not contract-to-contract calls.
      * @return uint256 Returns a list of all token id's assigned to an address.
     */
-    function tokensOfOwner(address tokenOwner) external view returns(uint256[] result) {
+    function tokensOfOwner(address tokenOwner) external view returns(uint256[] memory) {
         uint256 tokenCount = balanceOf(tokenOwner);
 
         if (tokenCount == 0) {

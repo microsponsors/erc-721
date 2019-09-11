@@ -453,6 +453,9 @@ contract ERC721 is ERC165, IERC721 {
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
+    // All token ids minted, incremented from 0
+    Counters.Counter _tokenIds;
+
     // Mapping from token ID to token owner
     mapping (uint256 => address) private _tokenOwner;
 
@@ -612,18 +615,17 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Function to mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function mint(address to, uint256 tokenId)
+    function mint(address to)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _mint(to, tokenId);
-        return true;
+        uint256 tokenId = _mint(to);
+        return tokenId;
 
     }
 
@@ -634,58 +636,56 @@ contract ERC721 is ERC165, IERC721 {
      *
      * @dev Function to mint tokens.
      * @param to The address that will receive the minted tokens.
-     * @param tokenId The token id to mint.
      * @param tokenURI The token URI of the minted token.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
     // solhint-enable
-    function mintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+    function mintWithTokenURI(address to, string memory tokenURI)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _mint(to, tokenId);
+        uint256 tokenId = _mint(to);
         _setTokenURI(tokenId, tokenURI);
-        return true;
+
+        return tokenId;
 
     }
 
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function safeMint(address to, uint256 tokenId)
+    function safeMint(address to)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId);
-        return true;
+        uint256 tokenId = _safeMint(to);
+        return tokenId;
 
     }
 
     /**
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted token.
-     * @param tokenId The token id to mint.
      * @param _data bytes data to send along with a safe transfer check.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
-    function safeMint(address to, uint256 tokenId, bytes memory _data)
+    function safeMint(address to, bytes memory _data)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId, _data);
-        return true;
+        uint256 tokenId = _safeMint(to, _data);
+        return tokenId;
 
     }
 
@@ -696,21 +696,21 @@ contract ERC721 is ERC165, IERC721 {
      *
      * @dev Function to safely mint tokens.
      * @param to The address that will receive the minted tokens.
-     * @param tokenId The token id to mint.
      * @param tokenURI The token URI of the minted token.
-     * @return A boolean that indicates if the operation was successful.
+     * @return tokenId
      */
     // solhint-enable
-    function safeMintWithTokenURI(address to, uint256 tokenId, string memory tokenURI)
+    function safeMintWithTokenURI(address to, string memory tokenURI)
         public
         onlyMinter
         whenNotPaused
-        returns (bool)
+        returns (uint256)
     {
 
-        _safeMint(to, tokenId);
+        uint256 tokenId = _safeMint(to);
         _setTokenURI(tokenId, tokenURI);
-        return true;
+
+        return tokenId;
 
     }
 
@@ -722,11 +722,12 @@ contract ERC721 is ERC165, IERC721 {
      * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
+     * @return tokenId
      */
-    function _safeMint(address to, uint256 tokenId) internal {
+    function _safeMint(address to) internal returns (uint256) {
 
-        _safeMint(to, tokenId, "");
+        uint256 tokenId = _safeMint(to, "");
+        return tokenId;
 
     }
 
@@ -738,17 +739,19 @@ contract ERC721 is ERC165, IERC721 {
      * `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`; otherwise,
      * the transfer is reverted.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
      * @param _data bytes data to send along with a safe transfer check
+     * @return tokenId
      */
-    function _safeMint(address to, uint256 tokenId, bytes memory _data) internal {
+    function _safeMint(address to, bytes memory _data) internal returns (uint256) {
 
-        _mint(to, tokenId);
+        uint256 tokenId = _mint(to);
 
         require(
             _checkOnERC721Received(address(0), to, tokenId, _data),
             "ERC721: transfer to non ERC721Receiver implementer"
         );
+
+        return tokenId;
 
     }
 
@@ -756,17 +759,20 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Internal function to mint a new token.
      * Reverts if the given token ID already exists.
      * @param to The address that will own the minted token
-     * @param tokenId uint256 ID of the token to be minted
      */
-    function _mint(address to, uint256 tokenId) internal {
+    function _mint(address to) internal returns (uint256) {
 
         require(to != address(0), "ERC721: mint to the zero address");
-        require(!_exists(tokenId), "ERC721: token already minted");
+
+        _tokenIds.increment();
+        uint256 tokenId = _tokenIds.current();
 
         _tokenOwner[tokenId] = to;
         _ownedTokensCount[to].increment();
 
         emit Transfer(address(0), to, tokenId);
+
+        return tokenId;
 
     }
 
@@ -786,6 +792,7 @@ contract ERC721 is ERC165, IERC721 {
             _exists(tokenId),
             "ERC721: URI set of nonexistent token"
         );
+
         _tokenURIs[tokenId] = uri;
 
     }
@@ -801,13 +808,23 @@ contract ERC721 is ERC165, IERC721 {
             _exists(tokenId),
             "ERC721: URI query for nonexistent token"
         );
+
         return _tokenURIs[tokenId];
 
     }
 
 
-    /***  Query balanceOf() a token holder's account  ***/
+    /***  Token data queries  ***/
 
+
+    /**
+     * @dev Gets the total number of tokens ever minted.
+     */
+    function totalSupply() public view returns (uint256) {
+
+        return _tokenIds.current();
+
+    }
 
     /**
      * @dev Gets the balance of the specified address.
@@ -825,10 +842,6 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-
-    /***  Transfers  ***/
-
-
     /**
      * @dev Gets the owner of the specified token ID.
      * @param tokenId uint256 ID of the token to query the owner of
@@ -845,6 +858,44 @@ contract ERC721 is ERC165, IERC721 {
         return tokenOwner;
 
     }
+
+    /**
+     * @param tokenOwner The owner whose tokens we are interested in.
+     * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
+     *  expensive (it walks the entire _tokenIds array looking for tokens belonging to owner),
+     *  but it also returns a dynamic array, which is only supported for web3 calls, and
+     *  not contract-to-contract calls.
+     * @return uint256 Returns a list of all token id's assigned to an address.
+    */
+    function tokensOfOwner(address tokenOwner) external view returns(uint256[] memory) {
+        uint256 tokenCount = balanceOf(tokenOwner);
+
+        if (tokenCount == 0) {
+            // Return an empty array
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 totalTokens = totalSupply();
+            uint256 resultIndex = 0;
+
+            // We count on the fact that all tokens have IDs starting at 1 and increase
+            // sequentially up to the total count.
+            uint256 tokenId;
+
+            for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
+                if (_tokenOwner[tokenId] == tokenOwner) {
+                    result[resultIndex] = tokenId;
+                    resultIndex++;
+                }
+            }
+
+            return result;
+        }
+    }
+
+
+    /***  Transfers  ***/
+
 
     /**
      * @dev Approves another address to transfer the given token ID
