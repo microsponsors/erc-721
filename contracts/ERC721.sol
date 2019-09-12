@@ -1,4 +1,5 @@
 pragma solidity ^0.5.11;
+pragma experimental ABIEncoderV2;
 
 import "./IERC721.sol";
 import "./IERC721Receiver.sol";
@@ -582,7 +583,7 @@ contract ERC721 is ERC165, IERC721 {
         _tokenToTimeSlot[tokenId] = _timeSlot;
 
         if (!_isContentIdMappedToMinter(contentId)) {
-            _tokenMinterToContentIds[_msgSender()].push(contentId);
+            _tokenMinterToContentIds[_msgSender()].push( ContentIdStruct(contentId) );
         }
 
         if (!_isPropertyNameMappedToMinter(contentId, propertyName)) {
