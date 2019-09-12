@@ -540,10 +540,11 @@ contract ERC721 is ERC165, IERC721 {
 
 
     function _isPropertyNameMappedToMinter(
+        string memory contentId,
         bytes32 propertyName
     )  internal view returns (bool) {
 
-        PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender];
+        PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender][contentId];
         bool foundMatch = false;
         for (uint i = 0; i < a.length; i++) {
             if (stringsMatch(propertyName, a[i].propertyName)) {
@@ -584,7 +585,7 @@ contract ERC721 is ERC165, IERC721 {
             _tokenMinterToContentIds[_msgSender()].push(contentId);
         }
 
-        if (!_isPropertyNameMappedToMinter(propertyName)) {
+        if (!_isPropertyNameMappedToMinter(contentId, propertyName)) {
             _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
         }
 
