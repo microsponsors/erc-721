@@ -606,6 +606,38 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+    /// @dev Look up all Content IDs a Minter has tokenized TimeSlots on
+    ///      We're not grabbing this from the Registry in case the user has private
+    //       content ids they dont want exposed in there
+    function tokenMinterContentIds(address minter) external view returns (string[] memory) {
+
+        ContentIdStruct[] memory m = _tokenMinterToContentIds[minter];
+        string[] memory r = new string[](m.length);
+
+        for (uint i = 0; i < m.length; i++) {
+            r[i] =  m[i].contentId;
+        }
+
+        return r;
+
+    }
+
+    /// @dev Look up all Property Names a Minter has tokenized on a content ID
+    function tokenMinterPropertyNames(
+        address minter,
+        string calldata contentId
+    ) external view returns (bytes32[] memory) {
+
+        PropertyNameStruct[] memory m = _tokenMinterToPropertyNames[minter][contentId];
+        bytes32[] memory r = new bytes32[](m.length);
+
+        for (uint i = 0; i < m.length; i++) {
+            r[i] =  m[i].propertyName;
+        }
+
+        return r;
+
+    }
 
     /***  Token balance and ownership queries  ***/
 
