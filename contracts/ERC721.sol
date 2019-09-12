@@ -625,7 +625,7 @@ contract ERC721 is ERC165, IERC721 {
         string[] memory r = new string[](m.length);
 
         for (uint i = 0; i < m.length; i++) {
-            r[i] =  m[i].contentId;
+            r[i] = m[i].contentId;
         }
 
         return r;
