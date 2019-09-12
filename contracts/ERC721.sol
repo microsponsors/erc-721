@@ -700,7 +700,6 @@ contract ERC721 is ERC165, IERC721 {
      *  expensive (it walks the entire _tokenIds array looking for tokens belonging to owner),
      *  but it also returns a dynamic array, which is only supported for web3 calls, and
      *  not contract-to-contract calls.
-     * @return uint256 Returns a list of all token id's assigned to an address.
     */
     function tokensOfOwner(address tokenOwner) external view returns(uint256[] memory) {
         uint256 tokenCount = balanceOf(tokenOwner);
