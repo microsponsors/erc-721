@@ -59,13 +59,21 @@ contract ERC721 is ERC165, IERC721 {
     // Mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
-    // Mapping from Token Owner => string ContentId => array of Property Names
+    // Mapping from Token Minter => string ContentId => array of Property Names
     // Used to display all tokenized time slots on a property.
     // Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
     struct PropertyNameStruct {
         bytes32 propertyName;
     }
     mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
+
+    // Mapping from Token Minter to array of Content Ids
+    // We're not grabbing this from the Registry in case the user has private
+    // content ids they dont want exposed
+    struct ContentIdStruct {
+        string contentId;
+    }
+    mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
     // Mapping from Token ID to Token URIs
     mapping(uint256 => string) private _tokenURIs;
@@ -485,7 +493,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Token TimeSlot data  ***/
+    /***  Token TimeSlot data and metadata  ***/
 
 
     function _isValidTimeSlot(
@@ -506,6 +514,21 @@ contract ERC721 is ERC165, IERC721 {
 
         return true;
 
+    }
+
+    function _isContentIdMappedToMinter(
+        string memory contentId
+    )  internal view returns (bool) {
+
+        ContentIdStruct[] memory a = _tokenMinterToContentIds[msg.sender];
+        bool foundMatch = false;
+        for (uint i = 0; i < a.length; i++) {
+            if (stringsMatch(contentId, a[i].contentId)) {
+                foundMatch = true;
+            }
+        }
+
+        return foundMatch;
     }
 
 
@@ -532,6 +555,11 @@ contract ERC721 is ERC165, IERC721 {
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
         _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
+
+        if (!isContentIdMappedToMinter(contentId)) {
+            _tokenMinterToContentIds[_msgSender()].push(contentId);
+        }
+
     }
 
 
@@ -1032,6 +1060,20 @@ contract ERC721 is ERC165, IERC721 {
     function unpause() public onlyOwner whenPaused {
         // can't unpause if contract was upgraded
         paused = false;
+    }
+
+
+    /***  Helper fn  ***/
+
+    function stringsMatch (
+        string memory a,
+        string memory b
+    )
+        private
+        pure
+        returns (bool)
+    {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 
 }
