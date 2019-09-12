@@ -34,4 +34,4 @@ In Remix, there is a warning about the use of `extcodehash` unless you compile w
 * EVM Version: `petersburg`
 
 #### Git tag + DEPLOYS.md
-Each public network deployment is git tagged (starting with `v0.1`) and recorded in [DEPLOYS.md](deploys.md)
+Each public network deployment is git tagged (starting with `v0.1`) and recorded in [DEPLOYS.md](DEPLOYS.md)
