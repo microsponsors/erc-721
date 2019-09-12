@@ -516,6 +516,7 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+
     function _isContentIdMappedToMinter(
         string memory contentId
     )  internal view returns (bool) {
@@ -524,6 +525,22 @@ contract ERC721 is ERC165, IERC721 {
         bool foundMatch = false;
         for (uint i = 0; i < a.length; i++) {
             if (stringsMatch(contentId, a[i].contentId)) {
+                foundMatch = true;
+            }
+        }
+
+        return foundMatch;
+    }
+
+
+    function _isPropertyNameMappedToMinter(
+        bytes32 propertyName
+    )  internal view returns (bool) {
+
+        PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender];
+        bool foundMatch = false;
+        for (uint i = 0; i < a.length; i++) {
+            if (stringsMatch(propertyName, a[i].propertyName)) {
                 foundMatch = true;
             }
         }
@@ -554,10 +571,13 @@ contract ERC721 is ERC165, IERC721 {
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
-        _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
 
         if (!isContentIdMappedToMinter(contentId)) {
             _tokenMinterToContentIds[_msgSender()].push(contentId);
+        }
+
+        if (!isPropertyNameMappedToMinter(propertyName)) {
+            _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
         }
 
     }
