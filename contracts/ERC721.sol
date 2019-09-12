@@ -547,7 +547,7 @@ contract ERC721 is ERC165, IERC721 {
         PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender][contentId];
         bool foundMatch = false;
         for (uint i = 0; i < a.length; i++) {
-            if (stringsMatch(propertyName, a[i].propertyName)) {
+            if (propertyName == a[i].propertyName) {
                 foundMatch = true;
             }
         }
