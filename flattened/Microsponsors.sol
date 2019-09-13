@@ -417,6 +417,11 @@ contract ERC165 is IERC165 {
 pragma solidity ^0.5.11;
 pragma experimental ABIEncoderV2;
 
+/**
+ * Customized for Microsponsors from:
+ * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
+ **/
+
 
 
 
@@ -644,11 +649,9 @@ contract ERC721 is ERC165, IERC721 {
 
     /**
      * @dev Function to mint tokens.
-     * @param to The address that will receive the minted token.
      * @return tokenId
      */
     function mint(
-        address to,
         string memory contentId,
         bytes32 propertyName,
         uint32 startTime,
@@ -666,7 +669,7 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: invalid time slot"
         );
 
-        uint256 tokenId = _mint(to);
+        uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
 
         return tokenId;
@@ -675,17 +678,12 @@ contract ERC721 is ERC165, IERC721 {
 
     // solhint-disable
     /**
-     * Customized for Microsponsors from:
-     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
-     *
      * @dev Function to mint tokens.
-     * @param to The address that will receive the minted tokens.
      * @param tokenURI The token URI of the minted token.
      * @return tokenId
      */
     // solhint-enable
     function mintWithTokenURI(
-        address to,
         string memory contentId,
         bytes32 propertyName,
         uint32 startTime,
@@ -704,7 +702,7 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: invalid time slot"
         );
 
-        uint256 tokenId = _mint(to);
+        uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
         _setTokenURI(tokenId, tokenURI);
 
@@ -714,11 +712,9 @@ contract ERC721 is ERC165, IERC721 {
 
     /**
      * @dev Function to safely mint tokens.
-     * @param to The address that will receive the minted token.
      * @return tokenId
      */
     function safeMint(
-        address to,
         string memory contentId,
         bytes32 propertyName,
         uint32 startTime,
@@ -736,7 +732,7 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: invalid time slot"
         );
 
-        uint256 tokenId = _safeMint(to);
+        uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
 
         return tokenId;
@@ -745,12 +741,10 @@ contract ERC721 is ERC165, IERC721 {
 
     /**
      * @dev Function to safely mint tokens.
-     * @param to The address that will receive the minted token.
      * @param data bytes data to send along with a safe transfer check.
      * @return tokenId
      */
     function safeMint(
-        address to,
         string memory contentId,
         bytes32 propertyName,
         uint32 startTime,
@@ -769,7 +763,7 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: invalid time slot"
         );
 
-        uint256 tokenId = _safeMint(to, data);
+        uint256 tokenId = _safeMint(_msgSender(), data);
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
 
         return tokenId;
@@ -782,13 +776,11 @@ contract ERC721 is ERC165, IERC721 {
      * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
      *
      * @dev Function to safely mint tokens.
-     * @param to The address that will receive the minted tokens.
      * @param tokenURI The token URI of the minted token.
      * @return tokenId
      */
     // solhint-enable
     function safeMintWithTokenURI(
-        address to,
         string memory contentId,
         bytes32 propertyName,
         uint32 startTime,
@@ -807,7 +799,7 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: invalid time slot"
         );
 
-        uint256 tokenId = _safeMint(to);
+        uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
         _setTokenURI(tokenId, tokenURI);
 
