@@ -18,10 +18,10 @@ $ npm run lint
 * Deploy to local ganache instance: `$ truffle migrate --network development `
 * Or... Compile & Deploy in one step: `$ npm run deploy`
 
-##### Compiler Versioning
+##### Solidity Compiler Version
 * Compiler: 0.5.11
 
-Note that the .sol files are marked `pragma solidity ^0.5.11` and we're using same in truffle-config.js `compilers.solc.version`.
+Note: .sol files are marked `pragma solidity ^0.5.11` and we're using same in truffle-config.js `compilers.solc.version`.
 
 #### Flatten for Remix Deploy
 * `$ npm run flatten`
@@ -35,3 +35,8 @@ In Remix, there is a warning about the use of `extcodehash` unless you compile w
 
 #### Git tag + DEPLOYS.md
 Each public network deployment is git tagged (starting with `v0.1`) and recorded in [DEPLOYS.md](DEPLOYS.md)
+
+---
+
+#### Note on ABIEncoderV2
+This contract is using `pragma experimental ABIEncoderV2`. Because both [0x](https://0x.org) and [dydx](https://dydx.exchange/) have been using it for many months, and critical bugs were fixed as far back as Solidity 0.5.4, we think its probably ok to use in production. Remarks on this [from the dydx team via Open Zeppelin blog](https://blog.openzeppelin.com/solo-margin-protocol-audit-30ac2aaf6b10/).
