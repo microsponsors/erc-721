@@ -1,6 +1,10 @@
 # DEPLOYS
 
-### 2019.0831
+### 2019.09.13
+git tag: v0.3
+* Kovan: [0xa0f9083af7011f10a55d197b0e55e0f8d25e6f25](https://kovan.etherscan.io/address/0xa0f9083af7011f10a55d197b0e55e0f8d25e6f25)
+
+### 2019.08.31
 git tag: v0.2
 * Kovan: [0x8c40d53f683bffa8719df9b9ee68b6905de3705a](https://kovan.etherscan.io/address/0x8c40d53f683bffa8719df9b9ee68b6905de3705a)
 
