@@ -473,9 +473,9 @@ contract ERC721 is ERC165, IERC721 {
         address minter; // the address of the user who mint()'ed this time slot
         string contentId; // the users' registered contentId containing the Property
         bytes32 propertyName; // describes the Property within the contentId that is tokenized into time slots
-        uint32 startTime; // min timestamp (when time slot begins)
-        uint32 endTime; // max timestamp (when time slot ends)
-        uint32 auctionEndTime; // max timestamp (when auction for time slot ends)
+        uint48 startTime; // min timestamp (when time slot begins)
+        uint48 endTime; // max timestamp (when time slot ends)
+        uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
     }
 
     // Mapping from Token ID to TimeSlot struct
@@ -654,9 +654,9 @@ contract ERC721 is ERC165, IERC721 {
     function mint(
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime
     )
         public
         onlyMinter

@@ -17,6 +17,9 @@
 
 ## Mint
 #### mint()
+```
+mint("dns:foo.com", "sidebar300X200px", 1579332938665, 1579632938665, 1572932938665);
+```
 #### mintWithTokenURI()
 #### safeMint()
 #### safeMintWithTokenURI()
