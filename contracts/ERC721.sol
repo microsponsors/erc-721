@@ -256,7 +256,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, string, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
 
         return tokenId;
 
@@ -535,13 +535,13 @@ contract ERC721 is ERC165, IERC721 {
 
     function _isPropertyNameMappedToMinter(
         string memory contentId,
-        string propertyName
+        string memory propertyName
     )  internal view returns (bool) {
 
         PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender][contentId];
         bool foundMatch = false;
         for (uint i = 0; i < a.length; i++) {
-            if (stringsMatch(propertyName == a[i].propertyName)) {
+            if (stringsMatch(propertyName, a[i].propertyName)) {
                 foundMatch = true;
             }
         }
@@ -634,7 +634,7 @@ contract ERC721 is ERC165, IERC721 {
     ) external view returns (string[] memory) {
 
         PropertyNameStruct[] memory m = _tokenMinterToPropertyNames[minter][contentId];
-        bytes32[] memory r = new bytes32[](m.length);
+        string[] memory r = new string[](m.length);
 
         for (uint i = 0; i < m.length; i++) {
             r[i] =  m[i].propertyName;

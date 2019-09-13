@@ -473,7 +473,7 @@ contract ERC721 is ERC165, IERC721 {
     struct TimeSlot {
         address minter; // the address of the user who mint()'ed this time slot
         string contentId; // the users' registered contentId containing the Property
-        bytes32 propertyName; // describes the Property within the contentId that is tokenized into time slots
+        string propertyName; // describes the Property within the contentId that is tokenized into time slots
         uint48 startTime; // min timestamp (when time slot begins)
         uint48 endTime; // max timestamp (when time slot ends)
         uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
@@ -486,7 +486,7 @@ contract ERC721 is ERC165, IERC721 {
     // Used to display all tokenized time slots on a property.
     // Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
     struct PropertyNameStruct {
-        bytes32 propertyName;
+        string propertyName;
     }
     mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
@@ -654,7 +654,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function mint(
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime
@@ -686,7 +686,7 @@ contract ERC721 is ERC165, IERC721 {
     // solhint-enable
     function mintWithTokenURI(
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
@@ -717,7 +717,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function safeMint(
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime
@@ -747,7 +747,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function safeMint(
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
@@ -783,7 +783,7 @@ contract ERC721 is ERC165, IERC721 {
     // solhint-enable
     function safeMintWithTokenURI(
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
@@ -950,13 +950,13 @@ contract ERC721 is ERC165, IERC721 {
 
     function _isPropertyNameMappedToMinter(
         string memory contentId,
-        bytes32 propertyName
+        string memory propertyName
     )  internal view returns (bool) {
 
         PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender][contentId];
         bool foundMatch = false;
         for (uint i = 0; i < a.length; i++) {
-            if (propertyName == a[i].propertyName) {
+            if (stringsMatch(propertyName, a[i].propertyName)) {
                 foundMatch = true;
             }
         }
@@ -968,7 +968,7 @@ contract ERC721 is ERC165, IERC721 {
     function _setTokenTimeSlot(
         uint256 tokenId,
         string memory contentId,
-        bytes32 propertyName,
+        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime
@@ -982,7 +982,7 @@ contract ERC721 is ERC165, IERC721 {
         TimeSlot memory _timeSlot = TimeSlot({
             minter: address(_msgSender()),
             contentId: string(contentId),
-            propertyName: bytes32(propertyName),
+            propertyName: string(propertyName),
             startTime: uint48(startTime),
             endTime: uint48(endTime),
             auctionEndTime: uint48(auctionEndTime)
@@ -1004,7 +1004,7 @@ contract ERC721 is ERC165, IERC721 {
     function tokenTimeSlot(uint256 tokenId) external view returns (
             address minter,
             string memory contentId,
-            bytes32 propertyName,
+            string memory propertyName,
             uint48 startTime,
             uint48 endTime,
             uint48 auctionEndTime
@@ -1046,10 +1046,10 @@ contract ERC721 is ERC165, IERC721 {
     function tokenMinterPropertyNames(
         address minter,
         string calldata contentId
-    ) external view returns (bytes32[] memory) {
+    ) external view returns (string[] memory) {
 
         PropertyNameStruct[] memory m = _tokenMinterToPropertyNames[minter][contentId];
-        bytes32[] memory r = new bytes32[](m.length);
+        string[] memory r = new string[](m.length);
 
         for (uint i = 0; i < m.length; i++) {
             r[i] =  m[i].propertyName;
