@@ -469,6 +469,7 @@ contract ERC721 is ERC165, IERC721 {
     mapping (address => Counters.Counter) private _ownedTokensCount;
 
     // A Token's TimeSlot metadata
+    // Timeslots are uint48 - https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
     struct TimeSlot {
         address minter; // the address of the user who mint()'ed this time slot
         string contentId; // the users' registered contentId containing the Property
@@ -686,9 +687,9 @@ contract ERC721 is ERC165, IERC721 {
     function mintWithTokenURI(
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
         string memory tokenURI
     )
         public
@@ -717,9 +718,9 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime
     )
         public
         onlyMinter
@@ -747,9 +748,9 @@ contract ERC721 is ERC165, IERC721 {
     function safeMint(
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
         bytes memory data
     )
         public
@@ -783,9 +784,9 @@ contract ERC721 is ERC165, IERC721 {
     function safeMintWithTokenURI(
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
         string memory tokenURI
     )
         public
@@ -912,8 +913,8 @@ contract ERC721 is ERC165, IERC721 {
 
     function _isValidTimeSlot(
         string memory contentId,
-        uint32 startTime,
-        uint32 endTime
+        uint48 startTime,
+        uint48 endTime
     ) internal view returns (bool) {
 
         require(
@@ -968,9 +969,9 @@ contract ERC721 is ERC165, IERC721 {
         uint256 tokenId,
         string memory contentId,
         bytes32 propertyName,
-        uint32 startTime,
-        uint32 endTime,
-        uint32 auctionEndTime
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime
     ) internal {
 
         require(
@@ -982,9 +983,9 @@ contract ERC721 is ERC165, IERC721 {
             minter: address(_msgSender()),
             contentId: string(contentId),
             propertyName: bytes32(propertyName),
-            startTime: uint32(startTime),
-            endTime: uint32(endTime),
-            auctionEndTime: uint32(auctionEndTime)
+            startTime: uint48(startTime),
+            endTime: uint48(endTime),
+            auctionEndTime: uint48(auctionEndTime)
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
@@ -1004,8 +1005,9 @@ contract ERC721 is ERC165, IERC721 {
             address minter,
             string memory contentId,
             bytes32 propertyName,
-            uint32 startTime,
-            uint32 endTime
+            uint48 startTime,
+            uint48 endTime,
+            uint48 auctionEndTime
     ) {
 
         require(
@@ -1018,7 +1020,8 @@ contract ERC721 is ERC165, IERC721 {
             _tokenToTimeSlot[tokenId].contentId,
             _tokenToTimeSlot[tokenId].propertyName,
             _tokenToTimeSlot[tokenId].startTime,
-            _tokenToTimeSlot[tokenId].endTime
+            _tokenToTimeSlot[tokenId].endTime,
+            _tokenToTimeSlot[tokenId].auctionEndTime
         );
 
     }
