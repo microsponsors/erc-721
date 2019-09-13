@@ -418,9 +418,9 @@ pragma solidity ^0.5.11;
 pragma experimental ABIEncoderV2;
 
 /**
- * Customized for Microsponsors from:
+ * @title ERC721 Customized for Microsponsors from:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
- **/
+ */
 
 
 
@@ -428,9 +428,10 @@ pragma experimental ABIEncoderV2;
 
 
 
-
-// Copy of Deployed Registry contract ABI
-// We just use the signatures of the parts we need to interact with:
+/**
+ * @title Deployed Registry smart contract ABI
+ * @dev We just use the signatures of the parts we need to interact with:
+ */
 contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
@@ -449,27 +450,29 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  Contract data  ***/
 
-    // This contract's owner (administator)
+
+    /// @dev This contract's owner (administator who deployed it)
     address public owner;
 
-    // Microsponsors Registry (whitelist)
+    // @title DeployedRegistry the Microsponsors Registry (whitelist) contract
     DeployedRegistry public registry;
 
     // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    // All token ids minted, incremented starting at 1
+    /// @title _tokenIds all token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
-    // Mapping from Token ID to Token Owner
+    /// @dev _tokenOwner mapping from Token ID to Token Owner
     mapping (uint256 => address) private _tokenOwner;
 
-    // Mapping from Token Owner to # of owned tokens
+    /// @dev _ownedTokensCount mapping from Token Owner to # of owned tokens
     mapping (address => Counters.Counter) private _ownedTokensCount;
 
-    // A Token's TimeSlot metadata
-    // Timeslots are uint48 - https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
+    /// @dev TimeSlot metadata struct for each token
+    ///      TimeSlots timestamps are stored as uint48:
+    ///      https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
     struct TimeSlot {
         address minter; // the address of the user who mint()'ed this time slot
         string contentId; // the users' registered contentId containing the Property
@@ -478,36 +481,37 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime; // max timestamp (when time slot ends)
         uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
     }
-
-    // Mapping from Token ID to TimeSlot struct
+    /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
-    // Mapping from Token Minter => string ContentId => array of Property Names
-    // Used to display all tokenized time slots on a property.
-    // Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
+    /// @dev PropertyNameStruct name of slot that is tokenized as time slots
     struct PropertyNameStruct {
         string propertyName;
     }
+    /// @dev _tokenMinterToPropertyName mapping from Minter => Content ID => array of Property Names
+    ///      Used to display all tokenized Time Slots on a given Property.
+    ///      Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
     mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
-    // Mapping from Token Minter to array of Content Ids
-    // We're not grabbing this from the Registry in case the user has private
-    // content ids they dont want exposed
+    /// @dev ContentIdStruct The registered content ID, verified by Registry contract
     struct ContentIdStruct {
         string contentId;
     }
+    /// @dev _tokenMinterToContentIds Mapping from Token Minter to array of Content Ids
+    ///      We're not grabbing this from the Registry in case the user has private
+    ///      content ids they dont want exposed in there
     mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
-    // Mapping from Token ID to Token URIs
+    /// @dev _tokenURIs Mapping from Token ID to Token URIs
     mapping(uint256 => string) private _tokenURIs;
 
-    // Mapping from Token ID to Approved Address
+    /// @dev _tokenApprovals Mapping from Token ID to Approved Address
     mapping (uint256 => address) private _tokenApprovals;
 
-    // Mapping from Token Owner to Operator Approvals
+    /// @dev _operatorApprovals Mapping from Token Owner to Operator Approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    // Pause. When true, token minting and transfers stop.
+    /// @dev paused When true, token minting and transfers stop.
     bool public paused = false;
 
     /*
@@ -537,7 +541,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /*
+    /**
      * @dev Provides information about the current execution context, including the
      * sender of the transaction and its data. While these are generally available
      * via msg.sender and msg.data, they not should not be accessed in such a direct
@@ -564,10 +568,9 @@ contract ERC721 is ERC165, IERC721 {
     /***  Owner (Administrator) functions  ***/
 
 
-    /*
+    /**
      * @dev Sets the contract's owner (administrator)
      * Based on 0x's Ownable, but modified here
-     * import "@0x/contracts-utils/contracts/src/Ownable.sol";
      */
     modifier onlyOwner() {
         require(
@@ -577,6 +580,10 @@ contract ERC721 is ERC165, IERC721 {
         _;
     }
 
+    /**
+     * @dev Transfer owner (admin) functions to another address
+     * @param newOwner Address of new owner/ admin of contract
+     */
     function transferOwnership(address newOwner)
         public
         onlyOwner
@@ -587,7 +594,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Update address for Microsponsors Registry contract
+     * @dev Update contract address for Microsponsors Registry contract
      * @param newAddress where the Registry contract lives
      */
     function updateRegistryAddress(address newAddress)
@@ -610,8 +617,8 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Checks if caller isWhitelisted(),
-     * throws with error message and refunds gas if not
+     * @dev Checks if caller isWhitelisted()
+     *      throws with error message and refunds gas if not
      */
     modifier onlyWhitelisted() {
 
@@ -632,7 +639,7 @@ contract ERC721 is ERC165, IERC721 {
 
     /**
      * @dev Checks if caller isMinter(),
-     * throws with error message and refunds gas if not
+     *      throws with error message and refunds gas if not
      */
     modifier onlyMinter() {
 
@@ -677,13 +684,11 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    // solhint-disable
     /**
      * @dev Function to mint tokens.
      * @param tokenURI The token URI of the minted token.
      * @return tokenId
      */
-    // solhint-enable
     function mintWithTokenURI(
         string memory contentId,
         string memory propertyName,
@@ -771,16 +776,10 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    // solhint-disable
     /**
-     * Customized for Microsponsors from
-     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721MetadataMintable.sol
-     *
-     * @dev Function to safely mint tokens.
      * @param tokenURI The token URI of the minted token.
      * @return tokenId
      */
-    // solhint-enable
     function safeMintWithTokenURI(
         string memory contentId,
         string memory propertyName,
@@ -892,9 +891,9 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Returns an URI for a given token ID.
      * Throws if the token ID does not exist. May return an empty string.
      * @param tokenId uint256 ID of the token to query
+     * @return URI for a given token ID.
      */
     function tokenURI(uint256 tokenId) external view returns (string memory) {
 
@@ -1026,9 +1025,9 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    /// @dev Look up all Content IDs a Minter has tokenized TimeSlots on
+    /// @dev Look up all Content IDs a Minter has tokenized TimeSlots for.
     ///      We're not grabbing this from the Registry in case the user has private
-    //       content ids they dont want exposed in there
+    ///      content IDs in the registry they dont want exposed publicly
     function tokenMinterContentIds(address minter) external view returns (string[] memory) {
 
         ContentIdStruct[] memory m = _tokenMinterToContentIds[minter];
@@ -1374,7 +1373,7 @@ contract ERC721 is ERC165, IERC721 {
 
     /**
      * @dev Internal function to transfer ownership of a given token ID to another address.
-     * As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
+     *      As opposed to {transferFrom}, this imposes no restrictions on msg.sender
      * @param from current owner of the token
      * @param to address to receive the ownership of the given token ID
      * @param tokenId uint256 ID of the token to be transferred
@@ -1445,9 +1444,9 @@ contract ERC721 is ERC165, IERC721 {
 
     // solhint-disable
     /**
-     * Customized for Microsponsors
-     * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Burnable.sol     * @dev Burns a specific ERC721 token.
-     * @param tokenId uint256 id of the ERC721 token to be burned.
+     * @dev Customized for Microsponsors
+     *      https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Burnable.sol     * @dev Burns a specific ERC721 token.
+     * @param tokenId uint256 id of the ERC721 token to be burned
      */
      // solhint-enable
     function burn(uint256 tokenId) public whenNotPaused {

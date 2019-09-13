@@ -156,7 +156,6 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * @dev Sets the contract's owner (administrator)
      * Based on 0x's Ownable, but modified here
-     * import "@0x/contracts-utils/contracts/src/Ownable.sol";
      */
     modifier onlyOwner() {
         require(
