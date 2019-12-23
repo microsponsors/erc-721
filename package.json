@@ -1,6 +1,5 @@
 {
   "name": "microsponsors-erc-721",
-  "version": "1.0.0",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
