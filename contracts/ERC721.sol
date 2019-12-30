@@ -86,9 +86,8 @@ contract ERC721 is ERC165, IERC721 {
     struct ContentIdStruct {
         string contentId;
     }
-    /// @dev _tokenMinterToContentIds Mapping from Token Minter to array of Content Ids
-    ///      We're not grabbing this from the Registry in case the user has private
-    ///      content ids they dont want exposed in there
+    /// @dev _tokenMinterToContentIds Mapping from Token Minter to array of Content IDs
+    ///      that they have *ever* minted tokens for
     mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
     /// @dev _tokenURIs Mapping from Token ID to Token URIs
@@ -122,10 +121,10 @@ contract ERC721 is ERC165, IERC721 {
 
     constructor () public {
 
-        // register the supported interfaces to conform to ERC721 via ERC165
+        // Register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
 
-        // set the contract owners to msg.sender by default
+        // Set the contract owners to msg.sender by default
         owner1 = _msgSender();
         owner2 = _msgSender();
 
@@ -641,8 +640,10 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /// @dev Look up all Content IDs a Minter has tokenized TimeSlots for.
-    ///      We're not grabbing this from the Registry in case the user has private
-    ///      content IDs in the registry they dont want exposed publicly
+    ///      We're not getting this from the Registry because we want to keep
+    ///      a separate record here of all Content ID's the acct has *ever*
+    ///      minted tokens for. The registry is for keeping track of their
+    ///      current (not necessarily past) Content ID registrations.
     function tokenMinterContentIds(address minter) external view returns (string[] memory) {
 
         ContentIdStruct[] memory m = _tokenMinterToContentIds[minter];
@@ -656,7 +657,8 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    /// @dev Look up all Property Names a Minter has tokenized on a content ID
+    /// @dev Look up all Property Names a Minter has created Time Slots for
+    ///      with a particular Content ID
     function tokenMinterPropertyNames(
         address minter,
         string calldata contentId
