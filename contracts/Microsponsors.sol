@@ -5,9 +5,26 @@ import "./ERC721.sol";
 
 /**
  * Customized for Microsponsors
- * from Open Zeppelin's ERC721Metadata contract:
+ * from Open Zeppelin's ERC721Metadata contract, which is MIT Licensed:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
- */
+
+
+  Copyright 2019 Niche Networks, Inc. (owns & operates Microsponsors.io)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+*/
+
 contract Microsponsors is ERC721 {
 
     // Token name
