@@ -601,6 +601,7 @@ contract ERC721 is ERC165, IERC721 {
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
             address minter,
+            address owner,
             string memory contentId,
             string memory propertyName,
             uint48 startTime,
@@ -615,6 +616,7 @@ contract ERC721 is ERC165, IERC721 {
 
         return (
             _tokenToTimeSlot[tokenId].minter,
+            ownerOf(tokenId),
             _tokenToTimeSlot[tokenId].contentId,
             _tokenToTimeSlot[tokenId].propertyName,
             _tokenToTimeSlot[tokenId].startTime,
@@ -693,10 +695,6 @@ contract ERC721 is ERC165, IERC721 {
     function ownerOf(uint256 tokenId) public view returns (address) {
 
         address tokenOwner = _tokenOwner[tokenId];
-        require(
-            tokenOwner != address(0),
-            "ERC721: token owner query for nonexistent token"
-        );
 
         return tokenOwner;
 
