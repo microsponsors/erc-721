@@ -37,19 +37,17 @@ contract ERC721 is ERC165, IERC721 {
 
 
     /// @dev This contract's owners (administators).
-    ///      Defaults to msg.sender from contract deployment.
-    ///
     address public owner1;
     address public owner2;
 
-    // @title DeployedRegistry the Microsponsors Registry (whitelist) contract
+    // @title DeployedRegistry the Microsponsors Registry Contract
     DeployedRegistry public registry;
 
     // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    /// @title _tokenIds all token IDs minted, incremented starting at 1
+    /// @title _tokenIds All Token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
     /// @dev _tokenOwner mapping from Token ID to Token Owner
@@ -73,7 +71,7 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
-    /// @dev PropertyNameStruct name of slot that is tokenized as time slots
+    /// @dev PropertyNameStruct: name of the time slot
     struct PropertyNameStruct {
         string propertyName;
     }
@@ -82,7 +80,7 @@ contract ERC721 is ERC165, IERC721 {
     ///      Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
     mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
-    /// @dev ContentIdStruct The registered content ID, verified by Registry contract
+    /// @dev ContentIdStruct The registered Content ID, verified by Registry contract
     struct ContentIdStruct {
         string contentId;
     }
