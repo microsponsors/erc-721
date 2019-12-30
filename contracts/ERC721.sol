@@ -68,6 +68,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime; // min timestamp (when time slot begins)
         uint48 endTime; // max timestamp (when time slot ends)
         uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
+        uint16 category; // integer that represents the category (see Microsponsors utils.js)
     }
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
@@ -263,7 +264,8 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category
     )
         public
         onlyMinter
@@ -277,7 +279,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -294,6 +296,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         string memory tokenURI
     )
         public
@@ -308,7 +311,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -324,7 +327,8 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category
     )
         public
         onlyMinter
@@ -338,7 +342,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -355,6 +359,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         bytes memory data
     )
         public
@@ -369,7 +374,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -385,6 +390,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         string memory tokenURI
     )
         public
@@ -399,7 +405,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -575,12 +581,13 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category,
     ) internal {
 
         require(
             _exists(tokenId),
-            "ERC721: URI set of nonexistent token"
+            "ERC721: non-existent token"
         );
 
         TimeSlot memory _timeSlot = TimeSlot({
@@ -589,7 +596,8 @@ contract ERC721 is ERC165, IERC721 {
             propertyName: string(propertyName),
             startTime: uint48(startTime),
             endTime: uint48(endTime),
-            auctionEndTime: uint48(auctionEndTime)
+            auctionEndTime: uint48(auctionEndTime),
+            category: uint16(category)
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
