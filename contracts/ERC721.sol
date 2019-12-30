@@ -36,13 +36,16 @@ contract ERC721 is ERC165, IERC721 {
     /***  Contract data  ***/
 
 
-    /// @dev This contract's owner (administator who deployed it)
-    address public owner;
+    /// @dev This contract's owners (administators).
+    ///      Defaults to msg.sender from contract deployment.
+    ///
+    address public owner1;
+    address public owner2;
 
     // @title DeployedRegistry the Microsponsors Registry (whitelist) contract
     DeployedRegistry public registry;
 
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
@@ -121,8 +124,10 @@ contract ERC721 is ERC165, IERC721 {
         // register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
 
-        // set the contract owner
-        owner = _msgSender();
+        // set the contract owners to msg.sender by default
+        owner1 = _msgSender();
+        owner2 = _msgSender();
+
     }
 
 
@@ -159,8 +164,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     modifier onlyOwner() {
         require(
-            _msgSender() == owner,
-            "ERC721: caller is not owner"
+            (_msgSender() == owner1) || (_msgSender() == owner2),
+            "ERC721: ONLY_CONTRACT_OWNER"
         );
         _;
     }
@@ -169,12 +174,21 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Transfer owner (admin) functions to another address
      * @param newOwner Address of new owner/ admin of contract
      */
-    function transferOwnership(address newOwner)
+    function transferOwnership1(address newOwner)
         public
         onlyOwner
     {
         if (newOwner != address(0)) {
-            owner = newOwner;
+            owner1 = newOwner;
+        }
+    }
+
+    function transferOwnership2(address newOwner)
+        public
+        onlyOwner
+    {
+        if (newOwner != address(0)) {
+            owner2 = newOwner;
         }
     }
 

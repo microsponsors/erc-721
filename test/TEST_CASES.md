@@ -1,9 +1,12 @@
 # Test Cases
 
 ## Admin
-#### owner()
-#### transferOwnership()
+#### owner1()
+#### transferOwnership1()
+#### owner2()
+#### transferOwnership2()
 #### symbol()
+#### paused()
 #### pause()
 #### unpause()
 
@@ -18,9 +21,7 @@
 ## Mint
 #### mint()
 ```
-mint(
-"dns:foo.com", "sidebar300x200",1579332938665,1579632938665, 1572932938665
-);
+mint("foo", "podcast",1579332938665,1579632938665, 1572932938665);
 ```
 #### mintWithTokenURI()
 #### safeMint()
