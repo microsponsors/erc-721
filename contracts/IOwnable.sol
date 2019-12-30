@@ -2,13 +2,15 @@ pragma solidity ^0.5.11;
 
 
 /*
- * Based on 0x's Ownable, but modified here because
- * Open Zeppelin is using solidity pragma 0.5.0 (vs 0x's 0.5.5)
+ * Based on 0x's Ownable, but modified here
  * import "@0x/contracts-utils/contracts/src/IOwnable.sol";
  */
 
 contract IOwnable {
 
-    function transferOwnership(address newOwner)
+    function transferOwnership1(address newOwner)
+        public;
+
+    function transferOwnership1(address newOwner)
         public;
 }
