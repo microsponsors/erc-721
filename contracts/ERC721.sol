@@ -272,7 +272,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
@@ -303,7 +303,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
@@ -333,7 +333,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
@@ -364,7 +364,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
@@ -394,7 +394,7 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
@@ -512,12 +512,18 @@ contract ERC721 is ERC165, IERC721 {
     function _isValidTimeSlot(
         string memory contentId,
         uint48 startTime,
-        uint48 endTime
+        uint48 endTime,
+        uint48 auctionEndTime
     ) internal view returns (bool) {
 
         require(
             registry.isContentIdRegisteredToCaller(contentId),
             "ERC721: content id is not registered to caller"
+        );
+
+        require(
+            startTime > auctionEndTime,
+            "ERC721: start time must be after its auction end time"
         );
 
         require(
