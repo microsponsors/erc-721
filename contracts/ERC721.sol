@@ -582,7 +582,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category,
+        uint16 category
     ) internal {
 
         require(
