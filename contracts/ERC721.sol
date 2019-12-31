@@ -59,6 +59,9 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
     mapping (address => Counters.Counter) private _mintedTokensCount;
 
+    /// @dev mintFee default amt below in wei; can be changed by contract owner
+    uint256 public mintFee = 100000000000000;
+
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
     ///      https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
@@ -171,6 +174,7 @@ contract ERC721 is ERC165, IERC721 {
         _;
     }
 
+
     /**
      * @dev Transfer owner (admin) functions to another address
      * @param newOwner Address of new owner/ admin of contract
@@ -184,6 +188,7 @@ contract ERC721 is ERC165, IERC721 {
         }
     }
 
+
     function transferOwnership2(address newOwner)
         public
         onlyOwner
@@ -192,6 +197,7 @@ contract ERC721 is ERC165, IERC721 {
             owner2 = newOwner;
         }
     }
+
 
     /**
      * @dev Update contract address for Microsponsors Registry contract
@@ -202,6 +208,19 @@ contract ERC721 is ERC165, IERC721 {
         onlyOwner
     {
         registry = DeployedRegistry(newAddress);
+    }
+
+
+    /**
+     * @dev Update the fee (in wei) charged for minting a single token
+     */
+    function updateMintFee(uint256 val)
+        public
+        onlyOwner
+    {
+
+        mintFee = val;
+
     }
 
 
@@ -268,10 +287,13 @@ contract ERC721 is ERC165, IERC721 {
         uint16 category
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
+
+        require(msg.value >= mintFee);
 
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
@@ -300,10 +322,13 @@ contract ERC721 is ERC165, IERC721 {
         string memory tokenURI
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
+
+        require(msg.value >= mintFee);
 
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
@@ -331,10 +356,13 @@ contract ERC721 is ERC165, IERC721 {
         uint16 category
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
+
+        require(msg.value >= mintFee);
 
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
@@ -363,10 +391,13 @@ contract ERC721 is ERC165, IERC721 {
         bytes memory data
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
+
+        require(msg.value >= mintFee);
 
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
@@ -394,10 +425,13 @@ contract ERC721 is ERC165, IERC721 {
         string memory tokenURI
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
+
+        require(msg.value >= mintFee);
 
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
