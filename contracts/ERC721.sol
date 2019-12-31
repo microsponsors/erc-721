@@ -1228,6 +1228,18 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
+    /*** Withdraw ***/
+
+
+    function withdrawBalance() external onlyOwner {
+
+        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
+        (bool success, ) = msg.sender.call.value(this.balance)("");
+        require(success, "Withdraw failed");
+
+    }
+
+
     /***  Helper fn  ***/
 
     function stringsMatch (
