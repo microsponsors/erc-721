@@ -56,6 +56,9 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _ownedTokensCount mapping from Token Owner to # of owned tokens
     mapping (address => Counters.Counter) private _ownedTokensCount;
 
+    /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
+    mapping (address => Counters.Counter) private _mintedTokensCount;
+
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
     ///      https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
@@ -464,6 +467,7 @@ contract ERC721 is ERC165, IERC721 {
 
         _tokenOwner[tokenId] = to;
         _ownedTokensCount[to].increment();
+        _mintedTokensCount[to].increment();
 
         emit Transfer(address(0), to, tokenId);
 
@@ -617,12 +621,13 @@ contract ERC721 is ERC165, IERC721 {
             string memory propertyName,
             uint48 startTime,
             uint48 endTime,
-            uint48 auctionEndTime
+            uint48 auctionEndTime,
+            uint16 category
     ) {
 
         require(
             _exists(tokenId),
-            "ERC721: Time slot query for nonexistent token id"
+            "ERC721: Non-existent Token ID"
         );
 
         return (
@@ -632,10 +637,15 @@ contract ERC721 is ERC165, IERC721 {
             _tokenToTimeSlot[tokenId].propertyName,
             _tokenToTimeSlot[tokenId].startTime,
             _tokenToTimeSlot[tokenId].endTime,
-            _tokenToTimeSlot[tokenId].auctionEndTime
+            _tokenToTimeSlot[tokenId].auctionEndTime,
+            _tokenToTimeSlot[tokenId].category
         );
 
     }
+
+
+    /***  Token minter queries  ***/
+
 
     /// @dev Look up all Content IDs a Minter has tokenized TimeSlots for.
     ///      We're not getting this from the Registry because we want to keep
@@ -673,6 +683,47 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+
+    /**
+     * Return all the Token IDs minted by a given account.
+     * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
+     *  expensive (it walks the entire _tokenIds array looking for tokens belonging to minter),
+     *  but it also returns a dynamic array, which is only supported for web3 calls, and
+     *  not contract-to-contract calls (at this time).
+     */
+    function tokensMintedBy(address minter) external view returns (uint256[] memory) {
+
+        require(
+            minter != address(0),
+            "ERC721: cannot query the zero address"
+        );
+
+        uint256 tokenCount = _mintedTokensCount[minter].current();
+        if (tokenCount == 0) {
+            // Return an empty array
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 totalTokens = totalSupply();
+            uint256 resultIndex = 0;
+
+            // All Tokens have IDs starting at 1 and increase
+            // sequentially up to the total supply count.
+            uint256 tokenId;
+
+            for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
+                if (_tokenToTimeSlot[tokenId].minter == minter) {
+                    result[resultIndex] = tokenId;
+                    resultIndex++;
+                }
+            }
+
+            return result;
+        }
+
+    }
+
+
     /***  Token balance and ownership queries  ***/
 
 
@@ -694,7 +745,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             tokenOwner != address(0),
-            "ERC721: balance query for the zero address"
+            "ERC721: cannot query the zero address"
         );
 
         return _ownedTokensCount[tokenOwner].current();
@@ -719,11 +770,10 @@ contract ERC721 is ERC165, IERC721 {
      * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
      *  expensive (it walks the entire _tokenIds array looking for tokens belonging to owner),
      *  but it also returns a dynamic array, which is only supported for web3 calls, and
-     *  not contract-to-contract calls.
+     *  not contract-to-contract calls (at this time).
     */
     function tokensOfOwner(address tokenOwner) external view returns(uint256[] memory) {
         uint256 tokenCount = balanceOf(tokenOwner);
-
         if (tokenCount == 0) {
             // Return an empty array
             return new uint256[](0);
@@ -732,7 +782,7 @@ contract ERC721 is ERC165, IERC721 {
             uint256 totalTokens = totalSupply();
             uint256 resultIndex = 0;
 
-            // We count on the fact that all tokens have IDs starting at 1 and increase
+            // All Tokens have IDs starting at 1 and increase
             // sequentially up to the total count.
             uint256 tokenId;
 
