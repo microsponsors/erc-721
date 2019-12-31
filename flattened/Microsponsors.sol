@@ -451,17 +451,18 @@ contract ERC721 is ERC165, IERC721 {
     /***  Contract data  ***/
 
 
-    /// @dev This contract's owner (administator who deployed it)
-    address public owner;
+    /// @dev This contract's owners (administators).
+    address public owner1;
+    address public owner2;
 
-    // @title DeployedRegistry the Microsponsors Registry (whitelist) contract
+    // @title DeployedRegistry the Microsponsors Registry Contract
     DeployedRegistry public registry;
 
-    // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
     // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
     bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
-    /// @title _tokenIds all token IDs minted, incremented starting at 1
+    /// @title _tokenIds All Token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
 
     /// @dev _tokenOwner mapping from Token ID to Token Owner
@@ -469,6 +470,12 @@ contract ERC721 is ERC165, IERC721 {
 
     /// @dev _ownedTokensCount mapping from Token Owner to # of owned tokens
     mapping (address => Counters.Counter) private _ownedTokensCount;
+
+    /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
+    mapping (address => Counters.Counter) private _mintedTokensCount;
+
+    /// @dev mintFee default amt below in wei; can be changed by contract owner
+    uint256 public mintFee = 100000000000000;
 
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
@@ -480,11 +487,12 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime; // min timestamp (when time slot begins)
         uint48 endTime; // max timestamp (when time slot ends)
         uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
+        uint16 category; // integer that represents the category (see Microsponsors utils.js)
     }
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
-    /// @dev PropertyNameStruct name of slot that is tokenized as time slots
+    /// @dev PropertyNameStruct: name of the time slot
     struct PropertyNameStruct {
         string propertyName;
     }
@@ -493,13 +501,12 @@ contract ERC721 is ERC165, IERC721 {
     ///      Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
     mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
-    /// @dev ContentIdStruct The registered content ID, verified by Registry contract
+    /// @dev ContentIdStruct The registered Content ID, verified by Registry contract
     struct ContentIdStruct {
         string contentId;
     }
-    /// @dev _tokenMinterToContentIds Mapping from Token Minter to array of Content Ids
-    ///      We're not grabbing this from the Registry in case the user has private
-    ///      content ids they dont want exposed in there
+    /// @dev _tokenMinterToContentIds Mapping from Token Minter to array of Content IDs
+    ///      that they have *ever* minted tokens for
     mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
     /// @dev _tokenURIs Mapping from Token ID to Token URIs
@@ -533,11 +540,13 @@ contract ERC721 is ERC165, IERC721 {
 
     constructor () public {
 
-        // register the supported interfaces to conform to ERC721 via ERC165
+        // Register the supported interfaces to conform to ERC721 via ERC165
         _registerInterface(_INTERFACE_ID_ERC721);
 
-        // set the contract owner
-        owner = _msgSender();
+        // Set the contract owners to msg.sender by default
+        owner1 = _msgSender();
+        owner2 = _msgSender();
+
     }
 
 
@@ -574,24 +583,36 @@ contract ERC721 is ERC165, IERC721 {
      */
     modifier onlyOwner() {
         require(
-            _msgSender() == owner,
-            "ERC721: caller is not owner"
+            (_msgSender() == owner1) || (_msgSender() == owner2),
+            "ERC721: ONLY_CONTRACT_OWNER"
         );
         _;
     }
+
 
     /**
      * @dev Transfer owner (admin) functions to another address
      * @param newOwner Address of new owner/ admin of contract
      */
-    function transferOwnership(address newOwner)
+    function transferOwnership1(address newOwner)
         public
         onlyOwner
     {
         if (newOwner != address(0)) {
-            owner = newOwner;
+            owner1 = newOwner;
         }
     }
+
+
+    function transferOwnership2(address newOwner)
+        public
+        onlyOwner
+    {
+        if (newOwner != address(0)) {
+            owner2 = newOwner;
+        }
+    }
+
 
     /**
      * @dev Update contract address for Microsponsors Registry contract
@@ -602,6 +623,19 @@ contract ERC721 is ERC165, IERC721 {
         onlyOwner
     {
         registry = DeployedRegistry(newAddress);
+    }
+
+
+    /**
+     * @dev Update the fee (in wei) charged for minting a single token
+     */
+    function updateMintFee(uint256 val)
+        public
+        onlyOwner
+    {
+
+        mintFee = val;
+
     }
 
 
@@ -664,21 +698,25 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(msg.value >= mintFee);
+
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -695,21 +733,25 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         string memory tokenURI
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(msg.value >= mintFee);
+
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -725,21 +767,25 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(msg.value >= mintFee);
+
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -756,21 +802,25 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         bytes memory data
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(msg.value >= mintFee);
+
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
 
         return tokenId;
 
@@ -786,21 +836,25 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
+        uint16 category,
         string memory tokenURI
     )
         public
+        payable
         onlyMinter
         whenNotPaused
         returns (uint256)
     {
 
+        require(msg.value >= mintFee);
+
         require(
-            _isValidTimeSlot(contentId, startTime, endTime),
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
             "ERC721: invalid time slot"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
 
         return tokenId;
@@ -862,6 +916,7 @@ contract ERC721 is ERC165, IERC721 {
 
         _tokenOwner[tokenId] = to;
         _ownedTokensCount[to].increment();
+        _mintedTokensCount[to].increment();
 
         emit Transfer(address(0), to, tokenId);
 
@@ -913,12 +968,18 @@ contract ERC721 is ERC165, IERC721 {
     function _isValidTimeSlot(
         string memory contentId,
         uint48 startTime,
-        uint48 endTime
+        uint48 endTime,
+        uint48 auctionEndTime
     ) internal view returns (bool) {
 
         require(
             registry.isContentIdRegisteredToCaller(contentId),
             "ERC721: content id is not registered to caller"
+        );
+
+        require(
+            startTime > auctionEndTime,
+            "ERC721: start time must be after its auction end time"
         );
 
         require(
@@ -970,12 +1031,13 @@ contract ERC721 is ERC165, IERC721 {
         string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint16 category
     ) internal {
 
         require(
             _exists(tokenId),
-            "ERC721: URI set of nonexistent token"
+            "ERC721: non-existent token"
         );
 
         TimeSlot memory _timeSlot = TimeSlot({
@@ -984,7 +1046,8 @@ contract ERC721 is ERC165, IERC721 {
             propertyName: string(propertyName),
             startTime: uint48(startTime),
             endTime: uint48(endTime),
-            auctionEndTime: uint48(auctionEndTime)
+            auctionEndTime: uint48(auctionEndTime),
+            category: uint16(category)
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
@@ -1002,32 +1065,44 @@ contract ERC721 is ERC165, IERC721 {
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
             address minter,
+            address owner,
             string memory contentId,
             string memory propertyName,
             uint48 startTime,
             uint48 endTime,
-            uint48 auctionEndTime
+            uint48 auctionEndTime,
+            uint16 category
     ) {
 
         require(
             _exists(tokenId),
-            "ERC721: Time slot query for nonexistent token id"
+            "ERC721: Non-existent Token ID"
         );
 
+        TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+
         return (
-            _tokenToTimeSlot[tokenId].minter,
-            _tokenToTimeSlot[tokenId].contentId,
-            _tokenToTimeSlot[tokenId].propertyName,
-            _tokenToTimeSlot[tokenId].startTime,
-            _tokenToTimeSlot[tokenId].endTime,
-            _tokenToTimeSlot[tokenId].auctionEndTime
+            _timeSlot.minter,
+            ownerOf(tokenId),
+            _timeSlot.contentId,
+            _timeSlot.propertyName,
+            _timeSlot.startTime,
+            _timeSlot.endTime,
+            _timeSlot.auctionEndTime,
+            _timeSlot.category
         );
 
     }
 
+
+    /***  Token minter queries  ***/
+
+
     /// @dev Look up all Content IDs a Minter has tokenized TimeSlots for.
-    ///      We're not grabbing this from the Registry in case the user has private
-    ///      content IDs in the registry they dont want exposed publicly
+    ///      We're not getting this from the Registry because we want to keep
+    ///      a separate record here of all Content ID's the acct has *ever*
+    ///      minted tokens for. The registry is for keeping track of their
+    ///      current (not necessarily past) Content ID registrations.
     function tokenMinterContentIds(address minter) external view returns (string[] memory) {
 
         ContentIdStruct[] memory m = _tokenMinterToContentIds[minter];
@@ -1041,7 +1116,8 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    /// @dev Look up all Property Names a Minter has tokenized on a content ID
+    /// @dev Look up all Property Names a Minter has created Time Slots for
+    ///      with a particular Content ID
     function tokenMinterPropertyNames(
         address minter,
         string calldata contentId
@@ -1057,6 +1133,49 @@ contract ERC721 is ERC165, IERC721 {
         return r;
 
     }
+
+
+    /**
+     * Return all the Token IDs minted by a given account.
+     * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
+     *  expensive (it walks the entire _tokenIds array looking for tokens belonging to minter),
+     *  but it also returns a dynamic array, which is only supported for web3 calls, and
+     *  not contract-to-contract calls (at this time).
+     */
+    function tokensMintedBy(address minter) external view returns (uint256[] memory) {
+
+        require(
+            minter != address(0),
+            "ERC721: cannot query the zero address"
+        );
+
+        uint256 tokenCount = _mintedTokensCount[minter].current();
+        if (tokenCount == 0) {
+            // Return an empty array
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 totalTokens = totalSupply();
+            uint256 resultIndex = 0;
+
+            // All Tokens have IDs starting at 1 and increase
+            // sequentially up to the total supply count.
+            uint256 tokenId;
+
+            for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
+                TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+                if (_timeSlot.minter == minter) {
+                    result[resultIndex] = tokenId;
+                    resultIndex++;
+                }
+                delete _timeSlot;
+            }
+
+            return result;
+        }
+
+    }
+
 
     /***  Token balance and ownership queries  ***/
 
@@ -1079,7 +1198,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             tokenOwner != address(0),
-            "ERC721: balance query for the zero address"
+            "ERC721: cannot query the zero address"
         );
 
         return _ownedTokensCount[tokenOwner].current();
@@ -1094,10 +1213,6 @@ contract ERC721 is ERC165, IERC721 {
     function ownerOf(uint256 tokenId) public view returns (address) {
 
         address tokenOwner = _tokenOwner[tokenId];
-        require(
-            tokenOwner != address(0),
-            "ERC721: token owner query for nonexistent token"
-        );
 
         return tokenOwner;
 
@@ -1108,11 +1223,10 @@ contract ERC721 is ERC165, IERC721 {
      * @dev This method MUST NEVER be called by smart contract code. First, it's fairly
      *  expensive (it walks the entire _tokenIds array looking for tokens belonging to owner),
      *  but it also returns a dynamic array, which is only supported for web3 calls, and
-     *  not contract-to-contract calls.
+     *  not contract-to-contract calls (at this time).
     */
     function tokensOfOwner(address tokenOwner) external view returns(uint256[] memory) {
         uint256 tokenCount = balanceOf(tokenOwner);
-
         if (tokenCount == 0) {
             // Return an empty array
             return new uint256[](0);
@@ -1121,7 +1235,7 @@ contract ERC721 is ERC165, IERC721 {
             uint256 totalTokens = totalSupply();
             uint256 resultIndex = 0;
 
-            // We count on the fact that all tokens have IDs starting at 1 and increase
+            // All Tokens have IDs starting at 1 and increase
             // sequentially up to the total count.
             uint256 tokenId;
 
@@ -1533,6 +1647,19 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
+    /*** Withdraw ***/
+
+
+    function withdrawBalance() external onlyOwner {
+
+        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
+        uint balance = address(this).balance;
+        (bool success, ) = msg.sender.call.value(balance)("");
+        require(success, "Withdraw failed");
+
+    }
+
+
     /***  Helper fn  ***/
 
     function stringsMatch (
@@ -1556,9 +1683,26 @@ pragma experimental ABIEncoderV2;
 
 /**
  * Customized for Microsponsors
- * from Open Zeppelin's ERC721Metadata contract:
+ * from Open Zeppelin's ERC721Metadata contract, which is MIT Licensed:
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
- */
+
+
+  Copyright 2019 Niche Networks, Inc. (owns & operates Microsponsors.io)
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+
+*/
+
 contract Microsponsors is ERC721 {
 
     // Token name

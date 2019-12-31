@@ -664,15 +664,17 @@ contract ERC721 is ERC165, IERC721 {
             "ERC721: Non-existent Token ID"
         );
 
+        TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+
         return (
-            _tokenToTimeSlot[tokenId].minter,
+            _timeSlot.minter,
             ownerOf(tokenId),
-            _tokenToTimeSlot[tokenId].contentId,
-            _tokenToTimeSlot[tokenId].propertyName,
-            _tokenToTimeSlot[tokenId].startTime,
-            _tokenToTimeSlot[tokenId].endTime,
-            _tokenToTimeSlot[tokenId].auctionEndTime,
-            _tokenToTimeSlot[tokenId].category
+            _timeSlot.contentId,
+            _timeSlot.propertyName,
+            _timeSlot.startTime,
+            _timeSlot.endTime,
+            _timeSlot.auctionEndTime,
+            _timeSlot.category
         );
 
     }
@@ -746,7 +748,13 @@ contract ERC721 is ERC165, IERC721 {
             uint256 tokenId;
 
             for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
-                if (_tokenToTimeSlot[tokenId].minter == minter) {
+
+
+                // TODO: this is NOT efficient, find a better way (a mapping?)
+                TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+
+
+                if (_timeSlot.minter == minter) {
                     result[resultIndex] = tokenId;
                     resultIndex++;
                 }
@@ -1234,7 +1242,8 @@ contract ERC721 is ERC165, IERC721 {
     function withdrawBalance() external onlyOwner {
 
         // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
-        (bool success, ) = msg.sender.call.value(this.balance)("");
+        uint balance = address(this).balance;
+        (bool success, ) = msg.sender.call.value(balance)("");
         require(success, "Withdraw failed");
 
     }

@@ -40,6 +40,7 @@ mint("foo", "podcast", 1579332938665, 1579632938665, 1572932938665, 1000);
 #### ownerOf()
 
 ## Gets - individual tokens
+#### tokensMintedBy()
 #### tokensOfOwner()
 #### tokenURI()
 #### tokenTimeSlot()
