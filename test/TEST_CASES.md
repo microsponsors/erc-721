@@ -19,6 +19,7 @@
 ## Admin: Mint Fee
 #### mintFee() - public
 #### updateMintFee()
+#### withdrawBalance()
 
 ## Public-facing permission checks
 #### isWhitelisted()
