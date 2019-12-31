@@ -748,13 +748,7 @@ contract ERC721 is ERC165, IERC721 {
             uint256 tokenId;
 
             for (tokenId = 1; tokenId <= totalTokens; tokenId++) {
-
-
-                // TODO: this is NOT efficient, find a better way (a mapping?)
-                TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
-
-
-                if (_timeSlot.minter == minter) {
+                if (_tokenToTimeSlot[tokenId].minter == minter) {
                     result[resultIndex] = tokenId;
                     resultIndex++;
                 }
