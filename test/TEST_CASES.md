@@ -27,8 +27,14 @@
 
 ## Mint
 #### mint()
-```
-mint("foo", "podcast", 1579332938665, 1579632938665, 1572932938665, 1000);
+```javascript
+mint("foo", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000);
+// --> works, if you send mintFee as msg.value
+// --> should fail if Content ID is not registered to acct in Registry
+//       or account is not whitelisted
+// --> should fail without mintFee sent as msg.value
+mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000);
+// --> should fail bc auctionEndTime is after startTime
 ```
 #### mintWithTokenURI()
 #### safeMint()
