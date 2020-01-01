@@ -16,12 +16,17 @@
 #### registry()
 #### updateRegistryAddress()
 
+## Admin: Reselling
+#### isGlobalResaleEnabled() - public
+#### enableGlobalResale()
+#### disableGlobalResale()
+
 ## Admin: Mint Fee
 #### mintFee() - public
 #### updateMintFee()
 #### withdrawBalance()
 
-## Public-facing permission checks
+## Public-facing user permission checks
 #### isWhitelisted()
 #### isMinter()
 

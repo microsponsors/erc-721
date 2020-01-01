@@ -13,6 +13,7 @@ import "./Address.sol";
 import "./Counters.sol";
 import "./ERC165.sol";
 
+
 /**
  * @title Deployed Registry smart contract ABI
  * @dev We just use the signatures of the parts we need to interact with:
@@ -36,16 +37,22 @@ contract ERC721 is ERC165, IERC721 {
     /***  Contract data  ***/
 
 
-    /// @dev This contract's owners (administators).
+    /// @dev owner1, owner2 Admins of this contract.
     address public owner1;
     address public owner2;
 
-    // @title DeployedRegistry the Microsponsors Registry Contract
-    DeployedRegistry public registry;
+    /// @dev paused Admin only. Set to `true` to stop token minting and transfers.
+    bool public paused = false;
 
-    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
-    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+    /// @dev isGlobalResaleEnabled Admin only. When false, only minter can transfer (sell) the token.
+    bool public isGlobalResaleEnabled = false;
+
+    /// @dev mintFee Admin only. Set minting fee; default fee is below (in wei).
+    uint256 public mintFee = 100000000000000;
+
+    /// @dev DeployedRegistry The Microsponsors Registry Contract that verifies participants.
+    ///      Admin can update the contract address here to upgrade Registry.
+    DeployedRegistry public registry;
 
     /// @title _tokenIds All Token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
@@ -58,9 +65,6 @@ contract ERC721 is ERC165, IERC721 {
 
     /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
     mapping (address => Counters.Counter) private _mintedTokensCount;
-
-    /// @dev mintFee default amt below in wei; can be changed by contract owner
-    uint256 public mintFee = 100000000000000;
 
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
@@ -103,9 +107,6 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _operatorApprovals Mapping from Token Owner to Operator Approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    /// @dev paused When true, token minting and transfers stop.
-    bool public paused = false;
-
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
      *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
@@ -121,6 +122,10 @@ contract ERC721 is ERC165, IERC721 {
      *        0xa22cb465 ^ 0xe985e9c ^ 0x23b872dd ^ 0x42842e0e ^ 0xb88d4fde == 0x80ac58cd
      */
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+
+    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
 
     constructor () public {
@@ -220,6 +225,59 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         mintFee = val;
+
+    }
+
+
+    /*** isGlobalResaleEnabled ***/
+
+
+    /// @dev Called by contract owner to enable token transfer (resale) by third-parties.
+    function enableGlobalResale() public onlyOwner {
+        isGlobalResaleEnabled = true;
+    }
+
+    /// @dev Called by contract owner to restrict token tranfer (sale) to a token's minter (only).
+    function disableGlobalResale() public onlyOwner {
+        isGlobalResaleEnabled = false;
+    }
+
+
+    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
+
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
+        _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Called by contract owner to pause minting and transfers.
+    function pause() public onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause minting and transfers.
+    function unpause() public onlyOwner whenPaused {
+        paused = false;
+    }
+
+
+    /*** Withdraw ***/
+
+
+    function withdrawBalance() external onlyOwner {
+
+        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
+        uint balance = address(this).balance;
+        (bool success, ) = msg.sender.call.value(balance)("");
+        require(success, "Withdraw failed");
 
     }
 
@@ -1197,48 +1255,6 @@ contract ERC721 is ERC165, IERC721 {
     function _burn(uint256 tokenId) internal {
 
         _burn(ownerOf(tokenId), tokenId);
-
-    }
-
-
-    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
-
-
-    /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-    /// @dev Called by contract owner to pause actions on this contract
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
-
-    /// @dev Called by contract owner to unpause the smart contract.
-    /// @notice This is public rather than external so it can be called by
-    ///  derived contracts.
-    function unpause() public onlyOwner whenPaused {
-        // can't unpause if contract was upgraded
-        paused = false;
-    }
-
-
-    /*** Withdraw ***/
-
-
-    function withdrawBalance() external onlyOwner {
-
-        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
-        uint balance = address(this).balance;
-        (bool success, ) = msg.sender.call.value(balance)("");
-        require(success, "Withdraw failed");
 
     }
 
