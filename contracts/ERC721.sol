@@ -20,6 +20,7 @@ import "./ERC165.sol";
  */
 contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
+    function isMinter(address account) external view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
     function isAuthorizedResaleOf(address from, address to, uint256 tokenId) external view returns(bool);
 }
@@ -309,20 +310,13 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Checks if minter isWhitelisted()
-     */
-    function isMinter(address account) public view returns (bool) {
-        return isWhitelisted(account);
-    }
-
-    /**
      * @dev Checks if caller isMinter(),
      *      throws with error message and refunds gas if not
      */
     modifier onlyMinter() {
 
         require(
-            isMinter(_msgSender()),
+            registry.isMinter(_msgSender()),
             "ERC721: caller is not whitelisted for the Minter role"
         );
         _;
