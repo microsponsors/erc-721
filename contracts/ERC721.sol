@@ -44,7 +44,7 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev paused Admin only. Set to `true` to stop token minting and transfers.
     bool public paused = false;
 
-    /// @dev isGlobalResaleEnabled Admin only. When false, only minter can transfer (sell) the token.
+    /// @dev isGlobalResaleEnabled Admin only. When false, token purchasers cannot resell tokens.
     bool public isGlobalResaleEnabled = false;
 
     /// @dev mintFee Admin only. Set minting fee; default fee is below (in wei).
@@ -232,12 +232,12 @@ contract ERC721 is ERC165, IERC721 {
     /*** isGlobalResaleEnabled ***/
 
 
-    /// @dev Called by contract owner to enable token transfer (resale) by third-parties.
+    /// @dev Called by contract owner to enable token transfer (resale) by buyer.
     function enableGlobalResale() public onlyOwner {
         isGlobalResaleEnabled = true;
     }
 
-    /// @dev Called by contract owner to restrict token tranfer (sale) to a token's minter (only).
+    /// @dev Called by contract owner to disable token tranfer (resale) by buyer.
     function disableGlobalResale() public onlyOwner {
         isGlobalResaleEnabled = false;
     }
@@ -892,7 +892,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Transfers  ***/
+    /***  Approvals & Transfers  ***/
 
 
     /**
@@ -992,11 +992,6 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
-        );
-
-        require(
             isWhitelisted(from),
             "ERC721: transfer restricted to whitelisted addresses"
         );
@@ -1005,6 +1000,20 @@ contract ERC721 is ERC165, IERC721 {
             isWhitelisted(to),
             "ERC721: transfer restricted to whitelisted addresses"
         );
+
+        require(
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "ERC721: transfer caller is not owner nor approved"
+        );
+
+        if (isGlobalResaleEnabled == false) {
+
+            require(
+                _isTokenResale() == false,
+                "ERC721: token resale is restricted at this time"
+            );
+
+        }
 
         _transferFrom(from, to, tokenId);
 
@@ -1058,6 +1067,15 @@ contract ERC721 is ERC165, IERC721 {
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
         );
+
+        if (isGlobalResaleEnabled == false) {
+
+            require(
+                _isTokenResale() == false,
+                "ERC721: token resale is restricted at this time"
+            );
+
+        }
 
         _safeTransferFrom(from, to, tokenId, data);
 
@@ -1123,6 +1141,34 @@ contract ERC721 is ERC165, IERC721 {
 
 
         return (spender == tokenOwner || getApproved(tokenId) == spender || isApprovedForAll(tokenOwner, spender));
+
+    }
+
+    /**
+     * @dev Returns whether a proposed transfer is a resale of the token.
+     * Must take into account whether buyer is sending token back to minter (not a resale).
+     * @param from address of current owner
+     @ @param to address of reciever
+     * @param tokenId uint256 ID of the token to be transferred
+     * @return bool whether this is a resale of the token by a buyer
+     */
+    function _isTokenResale(address from, address to, uint256 tokenId)
+        internal
+        view
+        returns (bool)
+    {
+
+        TimeSlot memory _token = _tokenToTimeSlot[tokenId];
+
+        if (from == _token.minter) {
+            return false;
+        }
+
+        if (to == _token.minter) {
+            return false;
+        }
+
+        return true;
 
     }
 
