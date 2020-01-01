@@ -21,6 +21,7 @@ import "./ERC165.sol";
 contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
+    function isAuthorizedResaleOf(address from, address to, uint256 tokenId) external view returns(bool);
 }
 
 
@@ -1013,6 +1014,13 @@ contract ERC721 is ERC165, IERC721 {
                 "ERC721: token resale is restricted at this time"
             );
 
+        } else {
+
+            require(
+                registry.isAuthorizedResaleOf(from, to, tokenId),
+                'ERC721: unauthorized resale'
+            );
+
         }
 
         _transferFrom(from, to, tokenId);
@@ -1075,6 +1083,12 @@ contract ERC721 is ERC165, IERC721 {
                 "ERC721: token resale is restricted at this time"
             );
 
+        } else {
+
+            require(
+                registry.isAuthorizedResaleOf(from, to, tokenId),
+                'ERC721: unauthorized resale'
+            );
         }
 
         _safeTransferFrom(from, to, tokenId, data);
