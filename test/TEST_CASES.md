@@ -28,7 +28,6 @@
 
 ## Public-facing user permission checks
 #### isWhitelisted()
-#### isMinter()
 
 ## Mint
 #### mint()
