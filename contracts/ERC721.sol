@@ -22,6 +22,7 @@ contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
     function isMinter(address account) external view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
+    function isAuthorizedTrader(address target) external view returns(bool);
     function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) external view returns(bool);
     function isAuthorizedResale(address from, address to, uint256 tokenId) external view returns(bool);
 }
@@ -182,7 +183,6 @@ contract ERC721 is ERC165, IERC721 {
         _;
     }
 
-
     /**
      * @dev Transfer owner (admin) functions to another address
      * @param newOwner Address of new owner/ admin of contract
@@ -206,7 +206,6 @@ contract ERC721 is ERC165, IERC721 {
         }
     }
 
-
     /**
      * @dev Update contract address for Microsponsors Registry contract
      * @param newAddress where the Registry contract lives
@@ -217,7 +216,6 @@ contract ERC721 is ERC165, IERC721 {
     {
         registry = DeployedRegistry(newAddress);
     }
-
 
     /**
      * @dev Update the fee (in wei) charged for minting a single token
@@ -231,10 +229,6 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-
-    /*** isGlobalResaleEnabled ***/
-
-
     /// @dev Called by contract owner to enable token transfer (resale) by buyer.
     function enableGlobalResale() public onlyOwner {
         isGlobalResaleEnabled = true;
@@ -246,9 +240,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
-
-
+    /// @dev Pausable (adapted from OpenZeppelin via Cryptokitties)
     /// @dev Modifier to allow actions only when the contract IS NOT paused
     modifier whenNotPaused() {
         require(!paused);
@@ -271,10 +263,7 @@ contract ERC721 is ERC165, IERC721 {
         paused = false;
     }
 
-
-    /*** Withdraw ***/
-
-
+    /// @dev Admin withdraws entire balance from contract.
     function withdrawBalance() external onlyOwner {
 
         // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
@@ -285,22 +274,8 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  User account permissions  ***/
+    /***  User account permission modifiers  ***/
 
-
-    /**
-     * @dev Checks if caller isWhitelisted()
-     *      throws with error message and refunds gas if not
-     */
-    modifier onlyWhitelisted() {
-
-        require(
-            isWhitelisted(_msgSender()),
-            "ERC721: caller is not whitelisted"
-        );
-        _;
-
-    }
 
     /**
      * @dev Checks if caller isMinter(),
@@ -310,7 +285,21 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isMinter(_msgSender()),
-            "ERC721: caller is not whitelisted for the Minter role"
+            "ERC721: caller is not authorized for the Minter role"
+        );
+        _;
+
+    }
+
+    /**
+     * @dev Checks if caller isAuthorizedTrader()
+     *      throws with error message and refunds gas if not
+     */
+    modifier onlyAuthorizedTrader() {
+
+        require(
+            registry.isAuthorizedTrader(_msgSender()),
+            "ERC721: caller is not whitelisted for the Trader role"
         );
         _;
 
@@ -893,7 +882,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function approve(address to, uint256 tokenId)
         public
-        onlyWhitelisted
+        onlyAuthorizedTrader
         whenNotPaused
     {
 
@@ -939,7 +928,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function setApprovalForAll(address to, bool approved)
         public
-        onlyWhitelisted
+        onlyAuthorizedTrader
         whenNotPaused
     {
 
