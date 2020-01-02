@@ -23,7 +23,7 @@ contract DeployedRegistry {
     function isMinter(address account) external view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
     function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) external view returns(bool);
-    function isAuthorizedResaleOf(address from, address to, uint256 tokenId) external view returns(bool);
+    function isAuthorizedResale(address from, address to, uint256 tokenId) external view returns(bool);
 }
 
 
@@ -999,7 +999,7 @@ contract ERC721 is ERC165, IERC721 {
         } else {
 
             require(
-                registry.isAuthorizedResaleOf(from, to, tokenId),
+                registry.isAuthorizedResale(from, to, tokenId),
                 'ERC721: unauthorized resale'
             );
 
@@ -1063,7 +1063,7 @@ contract ERC721 is ERC165, IERC721 {
         } else {
 
             require(
-                registry.isAuthorizedResaleOf(from, to, tokenId),
+                registry.isAuthorizedResale(from, to, tokenId),
                 'ERC721: unauthorized resale'
             );
         }
