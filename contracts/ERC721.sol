@@ -19,7 +19,6 @@ import "./ERC165.sol";
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
-    mapping (address => bool) public isWhitelisted;
     function isMinter(address account) public view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) public view returns(bool);
     function isAuthorizedTrader(address target) public view returns(bool);
