@@ -26,9 +26,6 @@
 #### updateMintFee()
 #### withdrawBalance()
 
-## Public-facing user permission checks
-#### isWhitelisted()
-
 ## Mint
 #### mint()
 ```javascript
@@ -48,14 +45,12 @@ mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000);
 #### totalSupply()
 #### balanceOf()
 #### ownerOf()
-
-## Gets - individual tokens
-#### tokensMintedBy()
 #### tokensOfOwner()
 #### tokenURI()
-#### tokenTimeSlot()
+#### tokensMintedBy()
 #### tokenMinterContentIds()
 #### tokenMinterPropertyNames()
+#### tokenTimeSlot()
 
 ## Transfers
 #### approve()

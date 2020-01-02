@@ -22,6 +22,7 @@ contract DeployedRegistry {
     mapping (address => bool) public isWhitelisted;
     function isMinter(address account) external view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
+    function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) external view returns(bool);
     function isAuthorizedResaleOf(address from, address to, uint256 tokenId) external view returns(bool);
 }
 
@@ -286,14 +287,6 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  User account permissions  ***/
 
-
-    /**
-     * @dev Checks Registry contract for whitelisted status
-     * @param target The address to check
-     */
-    function isWhitelisted(address target) public view returns (bool) {
-        return registry.isWhitelisted(target);
-    }
 
     /**
      * @dev Checks if caller isWhitelisted()
@@ -987,13 +980,8 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
-
-        require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
+            registry.isAuthorizedTransferFrom(from, to, tokenId),
+            "ERC721: unathorized transfer"
         );
 
         require(
@@ -1056,13 +1044,8 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
-
-        require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
+            registry.isAuthorizedTransferFrom(from, to, tokenId),
+            "ERC721: unauthorized transfer"
         );
 
         require(
