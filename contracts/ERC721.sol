@@ -21,7 +21,7 @@ import "./ERC165.sol";
 contract DeployedRegistry {
     function isContentIdRegisteredToCaller(string calldata contentId) public view returns(bool);
     function isMinter(address account) public view returns (bool);
-    function isTrader(address target) public view returns(bool);
+    function isTrader(address account) public view returns(bool);
     function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) public view returns(bool);
     function isAuthorizedResale(address from, address to, uint256 tokenId) public view returns(bool);
 }
