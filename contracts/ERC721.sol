@@ -21,7 +21,7 @@ import "./ERC165.sol";
 contract DeployedRegistry {
     function isMinter(address account) public view returns (bool);
     function isContentIdRegisteredToCaller(string calldata contentId) public view returns(bool);
-    function isAuthorizedTrader(address target) public view returns(bool);
+    function isTrader(address target) public view returns(bool);
     function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) public view returns(bool);
     function isAuthorizedResale(address from, address to, uint256 tokenId) public view returns(bool);
 }
@@ -291,14 +291,14 @@ contract ERC721 is ERC165, IERC721 {
     }
 
     /**
-     * @dev Checks if caller isAuthorizedTrader()
+     * @dev Checks if caller isTrader()
      *      throws with error message and refunds gas if not
      */
-    modifier onlyAuthorizedTrader() {
+    modifier onlyTrader() {
 
         require(
-            registry.isAuthorizedTrader(_msgSender()),
-            "ERC721: caller is not whitelisted for the Trader role"
+            registry.isTrader(_msgSender()),
+            "ERC721: caller is not authorized for the Trader role"
         );
         _;
 
@@ -881,7 +881,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function approve(address to, uint256 tokenId)
         public
-        onlyAuthorizedTrader
+        onlyTrader
         whenNotPaused
     {
 
@@ -927,7 +927,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function setApprovalForAll(address to, bool approved)
         public
-        onlyAuthorizedTrader
+        onlyTrader
         whenNotPaused
     {
 
