@@ -15,7 +15,7 @@ import "./ERC165.sol";
 
 
 /**
- * @title Deployed Registry smart contract ABI
+ * @title Deployed Microsponsors Registry smart contract interface.
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
