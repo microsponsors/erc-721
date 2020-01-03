@@ -1005,13 +1005,13 @@ contract ERC721 is ERC165, IERC721 {
         if (isGlobalResaleEnabled == false) {
 
             require(
-                _isTokenResale() == false,
+                _isTokenResale(from, to, tokenId) == false,
                 "ERC721: token resale is restricted at this time"
             );
 
         } else {
 
-            if (_isTokenResale()) {
+            if (_isTokenResale(from, to, tokenId)) {
 
                 require(
                     registry.isAuthorizedResale(from, to, tokenId),
@@ -1072,13 +1072,13 @@ contract ERC721 is ERC165, IERC721 {
         if (isGlobalResaleEnabled == false) {
 
             require(
-                _isTokenResale() == false,
+                _isTokenResale(from, to, tokenId) == false,
                 "ERC721: token resale is restricted at this time"
             );
 
         } else {
 
-            if (_isTokenResale()) {
+            if (_isTokenResale(from, to, tokenId)) {
                 require(
                     registry.isAuthorizedResale(from, to, tokenId),
                     'ERC721: unauthorized resale'
