@@ -1011,11 +1011,14 @@ contract ERC721 is ERC165, IERC721 {
 
         } else {
 
-            require(
-                registry.isAuthorizedResale(from, to, tokenId),
-                'ERC721: unauthorized resale'
-            );
+            if (_isTokenResale()) {
 
+                require(
+                    registry.isAuthorizedResale(from, to, tokenId),
+                    'ERC721: unauthorized resale'
+                );
+
+            }
         }
 
         _transferFrom(from, to, tokenId);
@@ -1075,10 +1078,12 @@ contract ERC721 is ERC165, IERC721 {
 
         } else {
 
-            require(
-                registry.isAuthorizedResale(from, to, tokenId),
-                'ERC721: unauthorized resale'
-            );
+            if (_isTokenResale()) {
+                require(
+                    registry.isAuthorizedResale(from, to, tokenId),
+                    'ERC721: unauthorized resale'
+                );
+            }
         }
 
         _safeTransferFrom(from, to, tokenId, data);
