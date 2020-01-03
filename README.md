@@ -2,6 +2,13 @@
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
 
+Note that there *are* transfer restrictions on these tokens, to satisfy the business requirements:
+1. All minters (Creators) and buyers (Sponsors) must be validated in our Proof-of-Content Registry to eliminate fraud/ impersonation/ spamming.
+2. At launch, there will be no reselling to third-parties.
+Later:
+3. When we do support resales to third-parties, it needs to be third-parties approved by the minter (Creator) to ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to represent.
+4. Microsponsors plans to add the ability for a Creator to delegate other accounts to mint, trade, transfer (in addition to reselling) on their behalf.
+
 #### Install
 * Install dependencies: `$ npm install`
 
