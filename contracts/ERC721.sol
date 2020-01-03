@@ -180,7 +180,7 @@ contract ERC721 is ERC165, IERC721 {
     modifier onlyOwner() {
         require(
             (_msgSender() == owner1) || (_msgSender() == owner2),
-            "ERC721: ONLY_CONTRACT_OWNER"
+            "ONLY_CONTRACT_OWNER"
         );
         _;
     }
@@ -271,7 +271,7 @@ contract ERC721 is ERC165, IERC721 {
         // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
         uint balance = address(this).balance;
         (bool success, ) = msg.sender.call.value(balance)("");
-        require(success, "Withdraw failed");
+        require(success, "WITHDRAW_FAILED");
 
     }
 
@@ -287,7 +287,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isMinter(_msgSender()),
-            "ERC721: caller is not authorized for the Minter role"
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
         );
         _;
 
@@ -301,7 +301,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isTrader(_msgSender()),
-            "ERC721: caller is not authorized for the Trader role"
+            "CALLER_NOT_AUTHORIZED_FOR_TRADER_ROLE"
         );
         _;
 
@@ -537,7 +537,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _checkOnERC721Received(address(0), to, tokenId, data),
-            "ERC721: transfer to non ERC721Receiver implementer"
+            "TRANSFER_TO_NON_ERC721RECEIVER_IMPLEMENTER"
         );
 
         return tokenId;
@@ -551,7 +551,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function _mint(address to) internal returns (uint256) {
 
-        require(to != address(0), "ERC721: mint to the zero address");
+        require(to != address(0), "MINT_TO_ZERO_ADDRESS");
 
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
@@ -580,7 +580,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: URI set of nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         _tokenURIs[tokenId] = uri;
@@ -596,7 +596,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: URI query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         return _tokenURIs[tokenId];
@@ -616,17 +616,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isContentIdRegisteredToCaller(contentId),
-            "ERC721: content id is not registered to caller"
+            "CONTENT_ID_NOT_REGISTERED_TO_CALLER"
         );
 
         require(
             startTime > auctionEndTime,
-            "ERC721: start time must be after its auction end time"
+            "START_TIME_AFTER_AUCTION_END_TIME"
         );
 
         require(
             endTime > startTime,
-            "ERC721: start time must be before end time"
+            "START_TIME_AFTER_END_TIME"
         );
 
         return true;
@@ -679,7 +679,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: non-existent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         TimeSlot memory _timeSlot = TimeSlot({
@@ -719,7 +719,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: Non-existent Token ID"
+            "NON_EXISTENT_TOKEN"
         );
 
         TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
@@ -791,7 +791,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             minter != address(0),
-            "ERC721: cannot query the zero address"
+            "CANNOT_QUERY_ZERO_ADDRESS"
         );
 
         uint256 tokenCount = _mintedTokensCount[minter].current();
@@ -841,7 +841,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             tokenOwner != address(0),
-            "ERC721: cannot query the zero address"
+            "CANNOT_QUERY_ZERO_ADDRESS"
         );
 
         return _ownedTokensCount[tokenOwner].current();
@@ -915,12 +915,12 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             to != tokenOwner,
-            "ERC721: approval is redundant"
+            "APPROVAL_IS_REDUNDANT"
         );
 
         require(
             _msgSender() == tokenOwner || isApprovedForAll(tokenOwner, _msgSender()),
-            "ERC721: approve caller is not token owner nor approved for all"
+            "CALLER_NOT_AUTHORIZED"
         );
 
         _tokenApprovals[tokenId] = to;
@@ -938,7 +938,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: approved query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         return _tokenApprovals[tokenId];
@@ -957,7 +957,7 @@ contract ERC721 is ERC165, IERC721 {
         whenNotPaused
     {
 
-        require(to != _msgSender(), "ERC721: approve to caller");
+        require(to != _msgSender(), "CALLER_CANNOT_APPROVE_SELF");
 
         _operatorApprovals[_msgSender()][to] = approved;
         emit ApprovalForAll(_msgSender(), to, approved);
@@ -995,19 +995,19 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isAuthorizedTransferFrom(from, to, tokenId),
-            "ERC721: unathorized transfer"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         if (isGlobalResaleEnabled == false) {
 
             require(
                 _isTokenResale(from, to, tokenId) == false,
-                "ERC721: token resale is restricted at this time"
+                "TOKEN_RESALE_RESTRICTED"
             );
 
         } else {
@@ -1016,7 +1016,7 @@ contract ERC721 is ERC165, IERC721 {
 
                 require(
                     registry.isAuthorizedResale(from, to, tokenId),
-                    'ERC721: unauthorized resale'
+                    "UNAUTHORIZED_RESALE"
                 );
 
             }
@@ -1062,19 +1062,19 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isAuthorizedTransferFrom(from, to, tokenId),
-            "ERC721: unauthorized transfer"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         if (isGlobalResaleEnabled == false) {
 
             require(
                 _isTokenResale(from, to, tokenId) == false,
-                "ERC721: token resale is restricted at this time"
+                "TOKEN_RESALE_RESTRICTED"
             );
 
         } else {
@@ -1082,7 +1082,7 @@ contract ERC721 is ERC165, IERC721 {
             if (_isTokenResale(from, to, tokenId)) {
                 require(
                     registry.isAuthorizedResale(from, to, tokenId),
-                    'ERC721: unauthorized resale'
+                    'UNAUTHORIZED_RESALE'
                 );
             }
         }
@@ -1111,7 +1111,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _checkOnERC721Received(from, to, tokenId, data),
-            "ERC721: transfer to non ERC721Receiver implementer"
+            "TRANSFER_TO_NON_ERC721RECEIVER_IMPLEMENTER"
         );
 
     }
@@ -1144,7 +1144,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: operator query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         address tokenOwner = ownerOf(tokenId);
@@ -1193,12 +1193,12 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             ownerOf(tokenId) == from,
-            "ERC721: transfer of token that is not own"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         require(
             to != address(0),
-            "ERC721: transfer to the zero address"
+            "TRANSFER_TO_ZERO_ADDRESS"
         );
 
         _clearApproval(tokenId);
@@ -1264,7 +1264,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: caller is not token owner nor approved"
+            "UNAUTHORIZED_BURN"
         );
 
         _burn(tokenId);
@@ -1283,7 +1283,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             ownerOf(tokenId) == tokenOwner,
-            "ERC721: burn of token that is not own"
+            "UNAUTHORIZED_BURN"
         );
 
         _clearApproval(tokenId);
