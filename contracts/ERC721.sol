@@ -723,6 +723,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+        uint32 _federationId = tokenToFederationId[tokenId];
 
         return (
             _timeSlot.minter,
@@ -733,7 +734,7 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.endTime,
             _timeSlot.auctionEndTime,
             _timeSlot.category,
-            tokenToFederationId[tokenId]
+            _federationId
         );
 
     }

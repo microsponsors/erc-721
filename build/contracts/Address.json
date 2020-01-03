@@ -1148,7 +1148,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.10",
-  "updatedAt": "2019-12-31T03:38:21.691Z",
+  "updatedAt": "2020-01-03T02:22:32.760Z",
   "devdoc": {
     "details": "Collection of functions related to the address type",
     "methods": {}

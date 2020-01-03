@@ -428,13 +428,17 @@ pragma experimental ABIEncoderV2;
 
 
 
+
 /**
- * @title Deployed Registry smart contract ABI
+ * @title Deployed Microsponsors Registry smart contract interface.
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
-    mapping (address => bool) public isWhitelisted;
-    function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
+    function isContentIdRegisteredToCaller(string memory contentId) public view returns(bool);
+    function isMinter(address account) public view returns (bool);
+    function isTrader(address account) public view returns(bool);
+    function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) public view returns(bool);
+    function isAuthorizedResale(address from, address to, uint256 tokenId) public view returns(bool);
 }
 
 
@@ -451,16 +455,22 @@ contract ERC721 is ERC165, IERC721 {
     /***  Contract data  ***/
 
 
-    /// @dev This contract's owners (administators).
+    /// @dev owner1, owner2 Admins of this contract.
     address public owner1;
     address public owner2;
 
-    // @title DeployedRegistry the Microsponsors Registry Contract
-    DeployedRegistry public registry;
+    /// @dev paused Admin only. Set to `true` to stop token minting and transfers.
+    bool public paused = false;
 
-    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
-    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+    /// @dev isGlobalResaleEnabled Admin only. When false, token purchasers cannot resell tokens.
+    bool public isGlobalResaleEnabled = false;
+
+    /// @dev mintFee Admin only. Set minting fee; default fee is below (in wei).
+    uint256 public mintFee = 100000000000000;
+
+    /// @dev DeployedRegistry The Microsponsors Registry Contract that verifies participants.
+    ///      Admin can update the contract address here to upgrade Registry.
+    DeployedRegistry public registry;
 
     /// @title _tokenIds All Token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
@@ -474,8 +484,8 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
     mapping (address => Counters.Counter) private _mintedTokensCount;
 
-    /// @dev mintFee default amt below in wei; can be changed by contract owner
-    uint256 public mintFee = 100000000000000;
+    /// @dev tokenToFederationId see notes on path to federation in Microsponsors Registry contract
+    mapping (uint256 => uint32) public tokenToFederationId;
 
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
@@ -518,9 +528,6 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _operatorApprovals Mapping from Token Owner to Operator Approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    /// @dev paused When true, token minting and transfers stop.
-    bool public paused = false;
-
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
      *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
@@ -536,6 +543,10 @@ contract ERC721 is ERC165, IERC721 {
      *        0xa22cb465 ^ 0xe985e9c ^ 0x23b872dd ^ 0x42842e0e ^ 0xb88d4fde == 0x80ac58cd
      */
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+
+    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
 
     constructor () public {
@@ -589,7 +600,6 @@ contract ERC721 is ERC165, IERC721 {
         _;
     }
 
-
     /**
      * @dev Transfer owner (admin) functions to another address
      * @param newOwner Address of new owner/ admin of contract
@@ -613,7 +623,6 @@ contract ERC721 is ERC165, IERC721 {
         }
     }
 
-
     /**
      * @dev Update contract address for Microsponsors Registry contract
      * @param newAddress where the Registry contract lives
@@ -624,7 +633,6 @@ contract ERC721 is ERC165, IERC721 {
     {
         registry = DeployedRegistry(newAddress);
     }
-
 
     /**
      * @dev Update the fee (in wei) charged for minting a single token
@@ -638,38 +646,53 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-
-    /***  User account permissions  ***/
-
-
-    /**
-     * @dev Checks Registry contract for whitelisted status
-     * @param target The address to check
-     */
-    function isWhitelisted(address target) public view returns (bool) {
-        return registry.isWhitelisted(target);
+    /// @dev Called by contract owner to enable token transfer (resale) by buyer.
+    function enableGlobalResale() public onlyOwner {
+        isGlobalResaleEnabled = true;
     }
 
-    /**
-     * @dev Checks if caller isWhitelisted()
-     *      throws with error message and refunds gas if not
-     */
-    modifier onlyWhitelisted() {
+    /// @dev Called by contract owner to disable token tranfer (resale) by buyer.
+    function disableGlobalResale() public onlyOwner {
+        isGlobalResaleEnabled = false;
+    }
 
-        require(
-            isWhitelisted(_msgSender()),
-            "ERC721: caller is not whitelisted"
-        );
+
+    /// @dev Pausable (adapted from OpenZeppelin via Cryptokitties)
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
         _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Called by contract owner to pause minting and transfers.
+    function pause() public onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause minting and transfers.
+    function unpause() public onlyOwner whenPaused {
+        paused = false;
+    }
+
+    /// @dev Admin withdraws entire balance from contract.
+    function withdrawBalance() external onlyOwner {
+
+        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
+        uint balance = address(this).balance;
+        (bool success, ) = msg.sender.call.value(balance)("");
+        require(success, "Withdraw failed");
 
     }
 
-    /**
-     * @dev Checks if minter isWhitelisted()
-     */
-    function isMinter(address account) public view returns (bool) {
-        return isWhitelisted(account);
-    }
+
+    /***  User account permission modifiers  ***/
+
 
     /**
      * @dev Checks if caller isMinter(),
@@ -678,8 +701,22 @@ contract ERC721 is ERC165, IERC721 {
     modifier onlyMinter() {
 
         require(
-            isMinter(_msgSender()),
-            "ERC721: caller is not whitelisted for the Minter role"
+            registry.isMinter(_msgSender()),
+            "ERC721: caller is not authorized for the Minter role"
+        );
+        _;
+
+    }
+
+    /**
+     * @dev Checks if caller isTrader()
+     *      throws with error message and refunds gas if not
+     */
+    modifier onlyTrader() {
+
+        require(
+            registry.isTrader(_msgSender()),
+            "ERC721: caller is not authorized for the Trader role"
         );
         _;
 
@@ -699,7 +736,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -710,13 +748,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -734,6 +775,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -745,14 +787,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -768,7 +813,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -779,13 +825,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -803,6 +852,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         bytes memory data
     )
         public
@@ -814,13 +864,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -837,6 +890,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -848,14 +902,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -1064,14 +1121,15 @@ contract ERC721 is ERC165, IERC721 {
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
-            address minter,
-            address owner,
-            string memory contentId,
-            string memory propertyName,
-            uint48 startTime,
-            uint48 endTime,
-            uint48 auctionEndTime,
-            uint16 category
+        address minter,
+        address owner,
+        string memory contentId,
+        string memory propertyName,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
+        uint16 category,
+        uint32 federationId
     ) {
 
         require(
@@ -1080,6 +1138,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+        uint32 _federationId = tokenToFederationId[tokenId];
 
         return (
             _timeSlot.minter,
@@ -1089,7 +1148,8 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.startTime,
             _timeSlot.endTime,
             _timeSlot.auctionEndTime,
-            _timeSlot.category
+            _timeSlot.category,
+            _federationId
         );
 
     }
@@ -1249,7 +1309,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Transfers  ***/
+    /***  Approvals & Transfers  ***/
 
 
     /**
@@ -1262,7 +1322,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function approve(address to, uint256 tokenId)
         public
-        onlyWhitelisted
+        onlyTrader
         whenNotPaused
     {
 
@@ -1308,7 +1368,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function setApprovalForAll(address to, bool approved)
         public
-        onlyWhitelisted
+        onlyTrader
         whenNotPaused
     {
 
@@ -1349,19 +1409,33 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
+            registry.isAuthorizedTransferFrom(from, to, tokenId),
+            "ERC721: unathorized transfer"
+        );
+
+        require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
         );
 
-        require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
+        if (isGlobalResaleEnabled == false) {
 
-        require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
+            require(
+                _isTokenResale(from, to, tokenId) == false,
+                "ERC721: token resale is restricted at this time"
+            );
+
+        } else {
+
+            if (_isTokenResale(from, to, tokenId)) {
+
+                require(
+                    registry.isAuthorizedResale(from, to, tokenId),
+                    'ERC721: unauthorized resale'
+                );
+
+            }
+        }
 
         _transferFrom(from, to, tokenId);
 
@@ -1402,19 +1476,31 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
-
-        require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
+            registry.isAuthorizedTransferFrom(from, to, tokenId),
+            "ERC721: unauthorized transfer"
         );
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "ERC721: transfer caller is not owner nor approved"
         );
+
+        if (isGlobalResaleEnabled == false) {
+
+            require(
+                _isTokenResale(from, to, tokenId) == false,
+                "ERC721: token resale is restricted at this time"
+            );
+
+        } else {
+
+            if (_isTokenResale(from, to, tokenId)) {
+                require(
+                    registry.isAuthorizedResale(from, to, tokenId),
+                    'ERC721: unauthorized resale'
+                );
+            }
+        }
 
         _safeTransferFrom(from, to, tokenId, data);
 
@@ -1480,6 +1566,34 @@ contract ERC721 is ERC165, IERC721 {
 
 
         return (spender == tokenOwner || getApproved(tokenId) == spender || isApprovedForAll(tokenOwner, spender));
+
+    }
+
+    /**
+     * @dev Returns whether a proposed transfer is a resale of the token.
+     * Must take into account whether buyer is sending token back to minter (not a resale).
+     * @param from address of current owner
+     @ @param to address of reciever
+     * @param tokenId uint256 ID of the token to be transferred
+     * @return bool whether this is a resale of the token by a buyer
+     */
+    function _isTokenResale(address from, address to, uint256 tokenId)
+        internal
+        view
+        returns (bool)
+    {
+
+        TimeSlot memory _token = _tokenToTimeSlot[tokenId];
+
+        if (from == _token.minter) {
+            return false;
+        }
+
+        if (to == _token.minter) {
+            return false;
+        }
+
+        return true;
 
     }
 
@@ -1616,48 +1730,6 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
-
-
-    /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-    /// @dev Called by contract owner to pause actions on this contract
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
-
-    /// @dev Called by contract owner to unpause the smart contract.
-    /// @notice This is public rather than external so it can be called by
-    ///  derived contracts.
-    function unpause() public onlyOwner whenPaused {
-        // can't unpause if contract was upgraded
-        paused = false;
-    }
-
-
-    /*** Withdraw ***/
-
-
-    function withdrawBalance() external onlyOwner {
-
-        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
-        uint balance = address(this).balance;
-        (bool success, ) = msg.sender.call.value(balance)("");
-        require(success, "Withdraw failed");
-
-    }
-
-
     /***  Helper fn  ***/
 
     function stringsMatch (
@@ -1685,7 +1757,7 @@ pragma experimental ABIEncoderV2;
  * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/ERC721Metadata.sol
 
 
-  Copyright 2019 Niche Networks, Inc. (owns & operates Microsponsors.io)
+  Copyright 2020 Niche Networks, Inc. (owns & operates Microsponsors.io)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
