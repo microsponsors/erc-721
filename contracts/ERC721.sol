@@ -69,6 +69,9 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
     mapping (address => Counters.Counter) private _mintedTokensCount;
 
+    /// @dev tokenToFederationId see notes on path to federation in Microsponsors Registry contract
+    mapping (uint32 => federationId) public tokenToFederationId;
+
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
     ///      https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
@@ -318,7 +321,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -329,13 +333,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -353,6 +360,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -364,14 +372,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -387,7 +398,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -398,13 +410,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -422,6 +437,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         bytes memory data
     )
         public
@@ -433,13 +449,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -456,6 +475,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -467,14 +487,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -683,14 +706,15 @@ contract ERC721 is ERC165, IERC721 {
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
-            address minter,
-            address owner,
-            string memory contentId,
-            string memory propertyName,
-            uint48 startTime,
-            uint48 endTime,
-            uint48 auctionEndTime,
-            uint16 category
+        address minter,
+        address owner,
+        string memory contentId,
+        string memory propertyName,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
+        uint16 category,
+        uint32 federationId
     ) {
 
         require(
@@ -708,7 +732,8 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.startTime,
             _timeSlot.endTime,
             _timeSlot.auctionEndTime,
-            _timeSlot.category
+            _timeSlot.category,
+            tokenToFederationId[tokenId]
         );
 
     }
