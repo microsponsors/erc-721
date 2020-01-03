@@ -19,7 +19,7 @@ import "./ERC165.sol";
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
-    function isContentIdRegisteredToCaller(string calldata contentId) public view returns(bool);
+    function isContentIdRegisteredToCaller(string memory contentId) public view returns(bool);
     function isMinter(address account) public view returns (bool);
     function isTrader(address account) public view returns(bool);
     function isAuthorizedTransferFrom(address from, address to, uint256 tokenId) public view returns(bool);
