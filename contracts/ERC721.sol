@@ -70,7 +70,7 @@ contract ERC721 is ERC165, IERC721 {
     mapping (address => Counters.Counter) private _mintedTokensCount;
 
     /// @dev tokenToFederationId see notes on path to federation in Microsponsors Registry contract
-    mapping (uint32 => federationId) public tokenToFederationId;
+    mapping (uint256 => uint32) public tokenToFederationId;
 
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
