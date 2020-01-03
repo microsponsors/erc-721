@@ -16,11 +16,6 @@
 #### registry()
 #### updateRegistryAddress()
 
-## Admin: Reselling
-#### isGlobalResaleEnabled() - public
-#### enableGlobalResale()
-#### disableGlobalResale()
-
 ## Admin: Mint Fee
 #### mintFee() - public
 #### updateMintFee()
