@@ -983,6 +983,9 @@ contract ERC721 is ERC165, IERC721 {
             "UNAUTHORIZED_TRANSFER"
         );
 
+        address minter = _tokenToTimeSlot[tokenId].minter;
+        address owner = ownerOf(tokenId);
+
         require(
             registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
             "UNAUTHORIZED_TRANSFER"
@@ -1027,12 +1030,15 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            registry.isAuthorizedTransferFrom(from, to, tokenId),
+            _isApprovedOrOwner(_msgSender(), tokenId),
             "UNAUTHORIZED_TRANSFER"
         );
 
+        address minter = _tokenToTimeSlot[tokenId].minter;
+        address owner = ownerOf(tokenId);
+
         require(
-            _isApprovedOrOwner(_msgSender(), tokenId),
+            registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
             "UNAUTHORIZED_TRANSFER"
         );
 
