@@ -7,11 +7,9 @@ Note that there *are* transfer restrictions on these tokens, to satisfy the foll
 
 1. All minters (Creators) and buyers (Sponsors) must be validated in our Proof-of-Content Registry to eliminate fraud/ impersonation/ spamming.
 2. At launch, there will be no reselling to third-parties.
-Later:
 3. When we do support token sales to third-parties, it needs to be third-parties approved by the minter (Creator) to ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to represent.
-4. Add the ability for a Creator to delegate other accounts to mint & burn (in addition to trading (re-selling) on their behalf.
 
-We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: DAOs, game studios, media orgs, agencies, etc). More information re: [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
+We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: DAOs, game studios, media orgs, agencies, etc). More information, the [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
 
 ---
 
