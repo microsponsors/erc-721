@@ -9,7 +9,7 @@ Note that there *are* transfer restrictions on these tokens, to satisfy the foll
 2. At launch, there will be no reselling to third-parties.
 3. When we do support token sales to third-parties, it needs to be third-parties approved by the minter (Creator) to ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to represent.
 
-We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: DAOs, game studios, media orgs, agencies, etc). More information about the [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
+We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: (think: DAOs, game studios, media orgs, agencies, consulting, freelancing, etc.)). More information about the [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
 
 ---
 
