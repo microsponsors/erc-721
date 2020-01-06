@@ -1603,6 +1603,16 @@ contract ERC721 is ERC165, IERC721 {
      // solhint-enable
     function burn(uint256 tokenId) public whenNotPaused {
 
+        address tokenOwner = ownerOf(tokenId);
+        address minter = _tokenToTimeSlot[tokenId].minter;
+
+        if (tokenOwner == minter) {
+            require(
+                registry.isMinter(_msgSender()),
+                "UNAUTHORIZED_BURN"
+            );
+        }
+
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
             "UNAUTHORIZED_BURN"
