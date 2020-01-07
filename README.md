@@ -2,6 +2,17 @@
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
 
+## Minting & Transfer Restrictions
+Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
+
+1. All minters (Creators) and buyers (Sponsors) must be validated in our Proof-of-Content Registry to eliminate fraud/ impersonation/ spamming.
+2. At launch, there will be no reselling to third-parties.
+3. When we do support token sales to third-parties, it needs to be third-parties approved by the minter (Creator) to ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to represent.
+
+We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: (think: DAOs, game studios, media orgs, agencies, consulting, freelancing, etc.)). More information about the [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
+
+---
+
 #### Install
 * Install dependencies: `$ npm install`
 

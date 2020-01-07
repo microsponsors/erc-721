@@ -13,13 +13,16 @@ import "./Address.sol";
 import "./Counters.sol";
 import "./ERC165.sol";
 
+
 /**
- * @title Deployed Registry smart contract ABI
+ * @title Deployed Microsponsors Registry smart contract interface.
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
-    mapping (address => bool) public isWhitelisted;
-    function isContentIdRegisteredToCaller(string calldata contentId) external view returns(bool);
+    function isContentIdRegisteredToCaller(string memory contentId) public view returns(bool);
+    function isMinter(address account) public view returns (bool);
+    function isTrader(address account) public view returns(bool);
+    function isAuthorizedTransferFrom(address from, address to, uint256 tokenId, address minter, address owner) public view returns(bool);
 }
 
 
@@ -36,16 +39,19 @@ contract ERC721 is ERC165, IERC721 {
     /***  Contract data  ***/
 
 
-    /// @dev This contract's owners (administators).
+    /// @dev owner1, owner2 Admins of this contract.
     address public owner1;
     address public owner2;
 
-    // @title DeployedRegistry the Microsponsors Registry Contract
-    DeployedRegistry public registry;
+    /// @dev paused Admin only. Set to `true` to stop token minting and transfers.
+    bool public paused = false;
 
-    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
-    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+    /// @dev mintFee Admin only. Set minting fee; default fee is below (in wei).
+    uint256 public mintFee = 100000000000000;
+
+    /// @dev DeployedRegistry The Microsponsors Registry Contract that verifies participants.
+    ///      Admin can update the contract address here to upgrade Registry.
+    DeployedRegistry public registry;
 
     /// @title _tokenIds All Token IDs minted, incremented starting at 1
     Counters.Counter _tokenIds;
@@ -59,8 +65,8 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _mintedTokensCount mapping from Token Minter to # of minted tokens
     mapping (address => Counters.Counter) private _mintedTokensCount;
 
-    /// @dev mintFee default amt below in wei; can be changed by contract owner
-    uint256 public mintFee = 100000000000000;
+    /// @dev tokenToFederationId see notes on path to federation in Microsponsors Registry contract
+    mapping (uint256 => uint32) public tokenToFederationId;
 
     /// @dev TimeSlot metadata struct for each token
     ///      TimeSlots timestamps are stored as uint48:
@@ -103,9 +109,6 @@ contract ERC721 is ERC165, IERC721 {
     /// @dev _operatorApprovals Mapping from Token Owner to Operator Approvals
     mapping (address => mapping (address => bool)) private _operatorApprovals;
 
-    /// @dev paused When true, token minting and transfers stop.
-    bool public paused = false;
-
     /*
      *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
      *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
@@ -121,6 +124,10 @@ contract ERC721 is ERC165, IERC721 {
      *        0xa22cb465 ^ 0xe985e9c ^ 0x23b872dd ^ 0x42842e0e ^ 0xb88d4fde == 0x80ac58cd
      */
     bytes4 private constant _INTERFACE_ID_ERC721 = 0x80ac58cd;
+
+    // @dev Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
+    bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
 
 
     constructor () public {
@@ -169,11 +176,10 @@ contract ERC721 is ERC165, IERC721 {
     modifier onlyOwner() {
         require(
             (_msgSender() == owner1) || (_msgSender() == owner2),
-            "ERC721: ONLY_CONTRACT_OWNER"
+            "ONLY_CONTRACT_OWNER"
         );
         _;
     }
-
 
     /**
      * @dev Transfer owner (admin) functions to another address
@@ -198,7 +204,6 @@ contract ERC721 is ERC165, IERC721 {
         }
     }
 
-
     /**
      * @dev Update contract address for Microsponsors Registry contract
      * @param newAddress where the Registry contract lives
@@ -209,7 +214,6 @@ contract ERC721 is ERC165, IERC721 {
     {
         registry = DeployedRegistry(newAddress);
     }
-
 
     /**
      * @dev Update the fee (in wei) charged for minting a single token
@@ -223,38 +227,42 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-
-    /***  User account permissions  ***/
-
-
-    /**
-     * @dev Checks Registry contract for whitelisted status
-     * @param target The address to check
-     */
-    function isWhitelisted(address target) public view returns (bool) {
-        return registry.isWhitelisted(target);
-    }
-
-    /**
-     * @dev Checks if caller isWhitelisted()
-     *      throws with error message and refunds gas if not
-     */
-    modifier onlyWhitelisted() {
-
-        require(
-            isWhitelisted(_msgSender()),
-            "ERC721: caller is not whitelisted"
-        );
+    /// @dev Pausable (adapted from OpenZeppelin via Cryptokitties)
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
         _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Called by contract owner to pause minting and transfers.
+    function pause() public onlyOwner whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Called by contract owner to unpause minting and transfers.
+    function unpause() public onlyOwner whenPaused {
+        paused = false;
+    }
+
+    /// @dev Admin withdraws entire balance from contract.
+    function withdrawBalance() external onlyOwner {
+
+        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
+        uint balance = address(this).balance;
+        (bool success, ) = msg.sender.call.value(balance)("");
+        require(success, "WITHDRAW_FAILED");
 
     }
 
-    /**
-     * @dev Checks if minter isWhitelisted()
-     */
-    function isMinter(address account) public view returns (bool) {
-        return isWhitelisted(account);
-    }
+
+    /***  User account permission modifiers  ***/
+
 
     /**
      * @dev Checks if caller isMinter(),
@@ -263,8 +271,22 @@ contract ERC721 is ERC165, IERC721 {
     modifier onlyMinter() {
 
         require(
-            isMinter(_msgSender()),
-            "ERC721: caller is not whitelisted for the Minter role"
+            registry.isMinter(_msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+        _;
+
+    }
+
+    /**
+     * @dev Checks if caller isTrader()
+     *      throws with error message and refunds gas if not
+     */
+    modifier onlyTrader() {
+
+        require(
+            registry.isTrader(_msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_TRADER_ROLE"
         );
         _;
 
@@ -284,7 +306,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -295,13 +318,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -319,6 +345,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -330,14 +357,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -353,7 +383,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        uint32 federationId
     )
         public
         payable
@@ -364,13 +395,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -388,6 +422,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         bytes memory data
     )
         public
@@ -399,13 +434,16 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -422,6 +460,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        uint32 federationId,
         string memory tokenURI
     )
         public
@@ -433,14 +472,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(msg.value >= mintFee);
 
+        require(federationId > 0, "INVALID_FEDERATION_ID");
+
         require(
             _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
-            "ERC721: invalid time slot"
+            "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
         _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
         _setTokenURI(tokenId, tokenURI);
+        tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
 
@@ -480,7 +522,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _checkOnERC721Received(address(0), to, tokenId, data),
-            "ERC721: transfer to non ERC721Receiver implementer"
+            "TRANSFER_TO_NON_ERC721RECEIVER_IMPLEMENTER"
         );
 
         return tokenId;
@@ -494,7 +536,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function _mint(address to) internal returns (uint256) {
 
-        require(to != address(0), "ERC721: mint to the zero address");
+        require(to != address(0), "MINT_TO_ZERO_ADDRESS");
 
         _tokenIds.increment();
         uint256 tokenId = _tokenIds.current();
@@ -523,7 +565,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: URI set of nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         _tokenURIs[tokenId] = uri;
@@ -539,7 +581,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: URI query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         return _tokenURIs[tokenId];
@@ -559,17 +601,17 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             registry.isContentIdRegisteredToCaller(contentId),
-            "ERC721: content id is not registered to caller"
+            "CONTENT_ID_NOT_REGISTERED_TO_CALLER"
         );
 
         require(
             startTime > auctionEndTime,
-            "ERC721: start time must be after its auction end time"
+            "START_TIME_AFTER_AUCTION_END_TIME"
         );
 
         require(
             endTime > startTime,
-            "ERC721: start time must be before end time"
+            "START_TIME_AFTER_END_TIME"
         );
 
         return true;
@@ -622,7 +664,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: non-existent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         TimeSlot memory _timeSlot = TimeSlot({
@@ -649,22 +691,24 @@ contract ERC721 is ERC165, IERC721 {
 
 
     function tokenTimeSlot(uint256 tokenId) external view returns (
-            address minter,
-            address owner,
-            string memory contentId,
-            string memory propertyName,
-            uint48 startTime,
-            uint48 endTime,
-            uint48 auctionEndTime,
-            uint16 category
+        address minter,
+        address owner,
+        string memory contentId,
+        string memory propertyName,
+        uint48 startTime,
+        uint48 endTime,
+        uint48 auctionEndTime,
+        uint16 category,
+        uint32 federationId
     ) {
 
         require(
             _exists(tokenId),
-            "ERC721: Non-existent Token ID"
+            "NON_EXISTENT_TOKEN"
         );
 
         TimeSlot memory _timeSlot = _tokenToTimeSlot[tokenId];
+        uint32 _federationId = tokenToFederationId[tokenId];
 
         return (
             _timeSlot.minter,
@@ -674,7 +718,8 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.startTime,
             _timeSlot.endTime,
             _timeSlot.auctionEndTime,
-            _timeSlot.category
+            _timeSlot.category,
+            _federationId
         );
 
     }
@@ -731,7 +776,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             minter != address(0),
-            "ERC721: cannot query the zero address"
+            "CANNOT_QUERY_ZERO_ADDRESS"
         );
 
         uint256 tokenCount = _mintedTokensCount[minter].current();
@@ -781,7 +826,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             tokenOwner != address(0),
-            "ERC721: cannot query the zero address"
+            "CANNOT_QUERY_ZERO_ADDRESS"
         );
 
         return _ownedTokensCount[tokenOwner].current();
@@ -834,7 +879,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Transfers  ***/
+    /***  Approvals & Transfers  ***/
 
 
     /**
@@ -847,7 +892,7 @@ contract ERC721 is ERC165, IERC721 {
      */
     function approve(address to, uint256 tokenId)
         public
-        onlyWhitelisted
+        onlyTrader
         whenNotPaused
     {
 
@@ -855,12 +900,12 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             to != tokenOwner,
-            "ERC721: approval is redundant"
+            "APPROVAL_IS_REDUNDANT"
         );
 
         require(
             _msgSender() == tokenOwner || isApprovedForAll(tokenOwner, _msgSender()),
-            "ERC721: approve caller is not token owner nor approved for all"
+            "CALLER_NOT_AUTHORIZED"
         );
 
         _tokenApprovals[tokenId] = to;
@@ -878,7 +923,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: approved query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         return _tokenApprovals[tokenId];
@@ -893,11 +938,11 @@ contract ERC721 is ERC165, IERC721 {
      */
     function setApprovalForAll(address to, bool approved)
         public
-        onlyWhitelisted
+        onlyTrader
         whenNotPaused
     {
 
-        require(to != _msgSender(), "ERC721: approve to caller");
+        require(to != _msgSender(), "CALLER_CANNOT_APPROVE_SELF");
 
         _operatorApprovals[_msgSender()][to] = approved;
         emit ApprovalForAll(_msgSender(), to, approved);
@@ -935,17 +980,15 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
+            "UNAUTHORIZED_TRANSFER"
         );
 
-        require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
+        address minter = _tokenToTimeSlot[tokenId].minter;
+        address owner = ownerOf(tokenId);
 
         require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
+            registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
+            "UNAUTHORIZED_TRANSFER"
         );
 
         _transferFrom(from, to, tokenId);
@@ -987,18 +1030,16 @@ contract ERC721 is ERC165, IERC721 {
     {
 
         require(
-            isWhitelisted(from),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
-
-        require(
-            isWhitelisted(to),
-            "ERC721: transfer restricted to whitelisted addresses"
-        );
-
-        require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: transfer caller is not owner nor approved"
+            "UNAUTHORIZED_TRANSFER"
+        );
+
+        address minter = _tokenToTimeSlot[tokenId].minter;
+        address owner = ownerOf(tokenId);
+
+        require(
+            registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
+            "UNAUTHORIZED_TRANSFER"
         );
 
         _safeTransferFrom(from, to, tokenId, data);
@@ -1025,7 +1066,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _checkOnERC721Received(from, to, tokenId, data),
-            "ERC721: transfer to non ERC721Receiver implementer"
+            "TRANSFER_TO_NON_ERC721RECEIVER_IMPLEMENTER"
         );
 
     }
@@ -1058,11 +1099,10 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             _exists(tokenId),
-            "ERC721: operator query for nonexistent token"
+            "NON_EXISTENT_TOKEN"
         );
 
         address tokenOwner = ownerOf(tokenId);
-
 
         return (spender == tokenOwner || getApproved(tokenId) == spender || isApprovedForAll(tokenOwner, spender));
 
@@ -1079,12 +1119,12 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             ownerOf(tokenId) == from,
-            "ERC721: transfer of token that is not own"
+            "UNAUTHORIZED_TRANSFER"
         );
 
         require(
             to != address(0),
-            "ERC721: transfer to the zero address"
+            "TRANSFER_TO_ZERO_ADDRESS"
         );
 
         _clearApproval(tokenId);
@@ -1148,9 +1188,19 @@ contract ERC721 is ERC165, IERC721 {
      // solhint-enable
     function burn(uint256 tokenId) public whenNotPaused {
 
+        address tokenOwner = ownerOf(tokenId);
+        address minter = _tokenToTimeSlot[tokenId].minter;
+
+        if (tokenOwner == minter) {
+            require(
+                registry.isMinter(_msgSender()),
+                "UNAUTHORIZED_BURN"
+            );
+        }
+
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
-            "ERC721: caller is not token owner nor approved"
+            "UNAUTHORIZED_BURN"
         );
 
         _burn(tokenId);
@@ -1169,7 +1219,7 @@ contract ERC721 is ERC165, IERC721 {
 
         require(
             ownerOf(tokenId) == tokenOwner,
-            "ERC721: burn of token that is not own"
+            "UNAUTHORIZED_BURN"
         );
 
         _clearApproval(tokenId);
@@ -1197,48 +1247,6 @@ contract ERC721 is ERC165, IERC721 {
     function _burn(uint256 tokenId) internal {
 
         _burn(ownerOf(tokenId), tokenId);
-
-    }
-
-
-    /*** Pausable (adapted from OpenZeppelin via Cryptokitties) ***/
-
-
-    /// @dev Modifier to allow actions only when the contract IS NOT paused
-    modifier whenNotPaused() {
-        require(!paused);
-        _;
-    }
-
-    /// @dev Modifier to allow actions only when the contract IS paused
-    modifier whenPaused {
-        require(paused);
-        _;
-    }
-
-    /// @dev Called by contract owner to pause actions on this contract
-    function pause() external onlyOwner whenNotPaused {
-        paused = true;
-    }
-
-    /// @dev Called by contract owner to unpause the smart contract.
-    /// @notice This is public rather than external so it can be called by
-    ///  derived contracts.
-    function unpause() public onlyOwner whenPaused {
-        // can't unpause if contract was upgraded
-        paused = false;
-    }
-
-
-    /*** Withdraw ***/
-
-
-    function withdrawBalance() external onlyOwner {
-
-        // Ref: https://diligence.consensys.net/blog/2019/09/stop-using-soliditys-transfer-now/
-        uint balance = address(this).balance;
-        (bool success, ) = msg.sender.call.value(balance)("");
-        require(success, "Withdraw failed");
 
     }
 

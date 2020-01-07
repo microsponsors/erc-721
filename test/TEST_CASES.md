@@ -21,19 +21,15 @@
 #### updateMintFee()
 #### withdrawBalance()
 
-## Public-facing permission checks
-#### isWhitelisted()
-#### isMinter()
-
 ## Mint
 #### mint()
 ```javascript
-mint("foo", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000);
+mint("foo", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000, 1);
 // --> works, if you send mintFee as msg.value
 // --> should fail if Content ID is not registered to acct in Registry
 //       or account is not whitelisted
 // --> should fail without mintFee sent as msg.value
-mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000);
+mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000, 1);
 // --> should fail bc auctionEndTime is after startTime
 ```
 #### mintWithTokenURI()
@@ -44,14 +40,13 @@ mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000);
 #### totalSupply()
 #### balanceOf()
 #### ownerOf()
-
-## Gets - individual tokens
-#### tokensMintedBy()
 #### tokensOfOwner()
 #### tokenURI()
-#### tokenTimeSlot()
+#### tokensMintedBy()
 #### tokenMinterContentIds()
 #### tokenMinterPropertyNames()
+#### tokenTimeSlot()
+#### tokenFederationId()
 
 ## Transfers
 #### approve()
@@ -63,7 +58,6 @@ mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000);
 
 ## Burns
 #### burn()
-#### safeBurn()
 
 ---
 
