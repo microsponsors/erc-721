@@ -1,4 +1,4 @@
-# Microsponsors ERC-721
+# Microsponsors ERC-721 (NFT) Time Slot Tokens
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
 
@@ -6,10 +6,13 @@ Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppe
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
 1. All minters (Creators) and buyers (Sponsors) must be validated in our Proof-of-Content Registry to eliminate fraud/ impersonation/ spamming.
-2. At launch, there will be no reselling to third-parties.
-3. When we do support token sales to third-parties, it needs to be third-parties approved by the minter (Creator) to ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to represent.
+2. Microsponsors ERC-721s (NFTs) give minters the option to disable token resale to third-parties, to help ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which brands or organizations they wish to work with.
 
-We also plan to Federate the Registry so that other organizations can implement their own rules and logic (think: (think: DAOs, game studios, media orgs, agencies, consulting, freelancing, etc.)). More information about the [Proof-of-Content Registry is here](https://github.com/microsponsors/registry-contract).
+## Path to Federation
+
+We plan to Federate so that other organizations can implement their own rules and logic around Registration, token minting, selling and re-selling (think: DAOs, game studios, media orgs, agencies, consultants, freelancers, etc).
+
+More information about how this will work in our [Proof-of-Content Registry](https://github.com/microsponsors/registry-contract).
 
 ---
 
