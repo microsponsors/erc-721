@@ -1295,6 +1295,7 @@ contract ERC721 is ERC165, IERC721 {
         uint256 tokenId
     )
         internal
+        view
         returns (bool)
     {
 
