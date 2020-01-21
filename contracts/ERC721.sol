@@ -682,7 +682,7 @@ contract ERC721 is ERC165, IERC721 {
             endTime: uint48(endTime),
             auctionEndTime: uint48(auctionEndTime),
             category: uint16(category),
-            isSecondaryTradingEnabled: bool(isSecondaryTradingEnabled),
+            isSecondaryTradingEnabled: bool(isSecondaryTradingEnabled)
 
         });
 
@@ -999,7 +999,7 @@ contract ERC721 is ERC165, IERC721 {
 
         if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
             require(
-                isSecondaryTrade() == false,
+                isSecondaryTrade(from, to, tokenId) == false,
                 "SECONDARY_TRADING_DISABLED"
             );
         }
@@ -1057,7 +1057,7 @@ contract ERC721 is ERC165, IERC721 {
 
         if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
             require(
-                isSecondaryTrade() == false,
+                isSecondaryTrade(from, to, tokenId) == false,
                 "SECONDARY_TRADING_DISABLED"
             );
         }
@@ -1276,7 +1276,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Helper fn  ***/
+    /***  Helper fns  ***/
 
     function stringsMatch (
         string memory a,
@@ -1294,8 +1294,7 @@ contract ERC721 is ERC165, IERC721 {
         address to,
         uint256 tokenId
     )
-        private
-        pure
+        internal
         returns (bool)
     {
 
