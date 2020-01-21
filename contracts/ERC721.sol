@@ -309,7 +309,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 auctionEndTime,
         uint16 category,
         bool isSecondaryTradingEnabled,
-        uint32 federationId,
+        uint32 federationId
     )
         public
         payable
@@ -666,7 +666,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
-        bool isSecondaryTradingEnabled,
+        bool isSecondaryTradingEnabled
     ) internal {
 
         require(
@@ -709,7 +709,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 auctionEndTime,
         uint16 category,
         bool isSecondaryTradingEnabled,
-        uint32 federationId,
+        uint32 federationId
     ) {
 
         require(
@@ -1296,10 +1296,9 @@ contract ERC721 is ERC165, IERC721 {
     )
         private
         pure
-        return (bool)
+        returns (bool)
     {
 
-        address owner = _tokenToTimeSlot[tokenId].owner;
         address minter = _tokenToTimeSlot[tokenId].minter;
 
         if (from == minter || to == minter) {
