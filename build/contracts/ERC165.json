@@ -63,7 +63,7 @@
         "id": 93,
         "nodeType": "ImportDirective",
         "scope": 143,
-        "sourceUnit": 2268,
+        "sourceUnit": 2365,
         "src": "27:23:2",
         "symbolAliases": [],
         "unitAlias": ""
@@ -77,10 +77,10 @@
               "id": 94,
               "name": "IERC165",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2267,
+              "referencedDeclaration": 2364,
               "src": "243:7:2",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC165_$2267",
+                "typeIdentifier": "t_contract$_IERC165_$2364",
                 "typeString": "contract IERC165"
               }
             },
@@ -90,7 +90,7 @@
           }
         ],
         "contractDependencies": [
-          2267
+          2364
         ],
         "contractKind": "contract",
         "documentation": "@dev Implementation of the {IERC165} interface.\n * Contracts may inherit from this and call {_registerInterface} to declare\ntheir support of an interface.",
@@ -98,7 +98,7 @@
         "id": 142,
         "linearizedBaseContracts": [
           142,
-          2267
+          2364
         ],
         "name": "ERC165",
         "nodeType": "ContractDefinition",
@@ -408,7 +408,7 @@
             "scope": 142,
             "src": "917:133:2",
             "stateMutability": "view",
-            "superFunction": 2266,
+            "superFunction": 2363,
             "visibility": "external"
           },
           {
@@ -505,10 +505,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2729,
-                        2730
+                        2826,
+                        2827
                       ],
-                      "referencedDeclaration": 2730,
+                      "referencedDeclaration": 2827,
                       "src": "1511:7:2",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -699,7 +699,7 @@
         "id": 93,
         "nodeType": "ImportDirective",
         "scope": 143,
-        "sourceUnit": 2268,
+        "sourceUnit": 2365,
         "src": "27:23:2",
         "symbolAliases": [],
         "unitAlias": ""
@@ -713,10 +713,10 @@
               "id": 94,
               "name": "IERC165",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2267,
+              "referencedDeclaration": 2364,
               "src": "243:7:2",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC165_$2267",
+                "typeIdentifier": "t_contract$_IERC165_$2364",
                 "typeString": "contract IERC165"
               }
             },
@@ -726,7 +726,7 @@
           }
         ],
         "contractDependencies": [
-          2267
+          2364
         ],
         "contractKind": "contract",
         "documentation": "@dev Implementation of the {IERC165} interface.\n * Contracts may inherit from this and call {_registerInterface} to declare\ntheir support of an interface.",
@@ -734,7 +734,7 @@
         "id": 142,
         "linearizedBaseContracts": [
           142,
-          2267
+          2364
         ],
         "name": "ERC165",
         "nodeType": "ContractDefinition",
@@ -1044,7 +1044,7 @@
             "scope": 142,
             "src": "917:133:2",
             "stateMutability": "view",
-            "superFunction": 2266,
+            "superFunction": 2363,
             "visibility": "external"
           },
           {
@@ -1141,10 +1141,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2729,
-                        2730
+                        2826,
+                        2827
                       ],
-                      "referencedDeclaration": 2730,
+                      "referencedDeclaration": 2827,
                       "src": "1511:7:2",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1314,7 +1314,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.10",
-  "updatedAt": "2020-01-06T20:43:11.405Z",
+  "updatedAt": "2020-01-21T00:40:06.870Z",
   "devdoc": {
     "details": "Implementation of the {IERC165} interface. * Contracts may inherit from this and call {_registerInterface} to declare their support of an interface.",
     "methods": {

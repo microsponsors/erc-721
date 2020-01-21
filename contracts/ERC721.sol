@@ -79,6 +79,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime; // max timestamp (when time slot ends)
         uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
         uint16 category; // integer that represents the category (see Microsponsors utils.js)
+        bool isSecondaryTradingEnabled; // if true, first buyer can trade to others
     }
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
@@ -307,6 +308,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId
     )
         public
@@ -326,7 +328,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -345,6 +347,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId,
         string memory tokenURI
     )
@@ -365,7 +368,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
         _setTokenURI(tokenId, tokenURI);
         tokenToFederationId[tokenId] = federationId;
 
@@ -384,6 +387,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId
     )
         public
@@ -403,7 +407,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -422,6 +426,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId,
         bytes memory data
     )
@@ -442,7 +447,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -460,6 +465,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId,
         string memory tokenURI
     )
@@ -480,7 +486,7 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category);
+        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
         _setTokenURI(tokenId, tokenURI);
         tokenToFederationId[tokenId] = federationId;
 
@@ -659,7 +665,8 @@ contract ERC721 is ERC165, IERC721 {
         uint48 startTime,
         uint48 endTime,
         uint48 auctionEndTime,
-        uint16 category
+        uint16 category,
+        bool isSecondaryTradingEnabled
     ) internal {
 
         require(
@@ -674,7 +681,9 @@ contract ERC721 is ERC165, IERC721 {
             startTime: uint48(startTime),
             endTime: uint48(endTime),
             auctionEndTime: uint48(auctionEndTime),
-            category: uint16(category)
+            category: uint16(category),
+            isSecondaryTradingEnabled: bool(isSecondaryTradingEnabled)
+
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
@@ -699,6 +708,7 @@ contract ERC721 is ERC165, IERC721 {
         uint48 endTime,
         uint48 auctionEndTime,
         uint16 category,
+        bool isSecondaryTradingEnabled,
         uint32 federationId
     ) {
 
@@ -719,6 +729,7 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.endTime,
             _timeSlot.auctionEndTime,
             _timeSlot.category,
+            _timeSlot.isSecondaryTradingEnabled,
             _federationId
         );
 
@@ -986,6 +997,13 @@ contract ERC721 is ERC165, IERC721 {
         address minter = _tokenToTimeSlot[tokenId].minter;
         address owner = ownerOf(tokenId);
 
+        if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
+            require(
+                isSecondaryTrade(from, to, tokenId) == false,
+                "SECONDARY_TRADING_DISABLED"
+            );
+        }
+
         require(
             registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
             "UNAUTHORIZED_TRANSFER"
@@ -1036,6 +1054,13 @@ contract ERC721 is ERC165, IERC721 {
 
         address minter = _tokenToTimeSlot[tokenId].minter;
         address owner = ownerOf(tokenId);
+
+        if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
+            require(
+                isSecondaryTrade(from, to, tokenId) == false,
+                "SECONDARY_TRADING_DISABLED"
+            );
+        }
 
         require(
             registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
@@ -1251,7 +1276,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    /***  Helper fn  ***/
+    /***  Helper fns  ***/
 
     function stringsMatch (
         string memory a,
@@ -1262,6 +1287,26 @@ contract ERC721 is ERC165, IERC721 {
         returns (bool)
     {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
+    }
+
+    function isSecondaryTrade (
+        address from,
+        address to,
+        uint256 tokenId
+    )
+        internal
+        view
+        returns (bool)
+    {
+
+        address minter = _tokenToTimeSlot[tokenId].minter;
+
+        if (from == minter || to == minter) {
+            return false;
+        } else {
+            return true;
+        }
+
     }
 
 }
