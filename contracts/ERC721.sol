@@ -19,10 +19,10 @@ import "./ERC165.sol";
  * @dev We just use the signatures of the parts we need to interact with:
  */
 contract DeployedRegistry {
-    function isContentIdRegisteredToCaller(string memory contentId) public view returns(bool);
-    function isMinter(address account) public view returns (bool);
-    function isTrader(address account) public view returns(bool);
-    function isAuthorizedTransferFrom(address from, address to, uint256 tokenId, address minter, address owner) public view returns(bool);
+    function isContentIdRegisteredToCaller(uint32 federationId, string memory contentId) public view returns(bool);
+    function isMinter(uint32 federationId, address account) public view returns (bool);
+    function isTrader(uint32 federationId, address account) public view returns(bool);
+    function isAuthorizedTransferFrom(uint32 federationId, address from, address to, uint256 tokenId, address minter, address owner) public view returns(bool);
 }
 
 
@@ -82,6 +82,7 @@ contract ERC721 is ERC165, IERC721 {
         bool isSecondaryTradingEnabled; // if true, first buyer can trade to others
     }
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
+    ///      Use tokenTimeSlot() public method to read
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
 
     /// @dev PropertyNameStruct: name of the time slot
@@ -266,20 +267,6 @@ contract ERC721 is ERC165, IERC721 {
 
 
     /**
-     * @dev Checks if caller isMinter(),
-     *      throws with error message and refunds gas if not
-     */
-    modifier onlyMinter() {
-
-        require(
-            registry.isMinter(_msgSender()),
-            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
-        );
-        _;
-
-    }
-
-    /**
      * @dev Checks if caller isTrader()
      *      throws with error message and refunds gas if not
      */
@@ -313,7 +300,6 @@ contract ERC721 is ERC165, IERC721 {
     )
         public
         payable
-        onlyMinter
         whenNotPaused
         returns (uint256)
     {
@@ -323,7 +309,12 @@ contract ERC721 is ERC165, IERC721 {
         require(federationId > 0, "INVALID_FEDERATION_ID");
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
+            registry.isMinter(federationId, _msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
@@ -353,7 +344,6 @@ contract ERC721 is ERC165, IERC721 {
     )
         public
         payable
-        onlyMinter
         whenNotPaused
         returns (uint256)
     {
@@ -363,7 +353,12 @@ contract ERC721 is ERC165, IERC721 {
         require(federationId > 0, "INVALID_FEDERATION_ID");
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
+            registry.isMinter(federationId, _msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
@@ -392,7 +387,6 @@ contract ERC721 is ERC165, IERC721 {
     )
         public
         payable
-        onlyMinter
         whenNotPaused
         returns (uint256)
     {
@@ -402,7 +396,12 @@ contract ERC721 is ERC165, IERC721 {
         require(federationId > 0, "INVALID_FEDERATION_ID");
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
+            registry.isMinter(federationId, _msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
@@ -432,7 +431,6 @@ contract ERC721 is ERC165, IERC721 {
     )
         public
         payable
-        onlyMinter
         whenNotPaused
         returns (uint256)
     {
@@ -442,7 +440,12 @@ contract ERC721 is ERC165, IERC721 {
         require(federationId > 0, "INVALID_FEDERATION_ID");
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
+            registry.isMinter(federationId, _msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
@@ -471,7 +474,6 @@ contract ERC721 is ERC165, IERC721 {
     )
         public
         payable
-        onlyMinter
         whenNotPaused
         returns (uint256)
     {
@@ -481,7 +483,12 @@ contract ERC721 is ERC165, IERC721 {
         require(federationId > 0, "INVALID_FEDERATION_ID");
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime),
+            registry.isMinter(federationId, _msgSender()),
+            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
+        );
+
+        require(
+            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
@@ -602,11 +609,12 @@ contract ERC721 is ERC165, IERC721 {
         string memory contentId,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime
+        uint48 auctionEndTime,
+        uint32 federationId
     ) internal view returns (bool) {
 
         require(
-            registry.isContentIdRegisteredToCaller(contentId),
+            registry.isContentIdRegisteredToCaller(federationId, contentId),
             "CONTENT_ID_NOT_REGISTERED_TO_CALLER"
         );
 
@@ -699,7 +707,7 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    function tokenTimeSlot(uint256 tokenId) external view returns (
+    function tokenTimeSlot(uint256 tokenId) public view returns (
         address minter,
         address owner,
         string memory contentId,
@@ -1213,12 +1221,13 @@ contract ERC721 is ERC165, IERC721 {
      // solhint-enable
     function burn(uint256 tokenId) public whenNotPaused {
 
-        address tokenOwner = ownerOf(tokenId);
         address minter = _tokenToTimeSlot[tokenId].minter;
+        address tokenOwner = ownerOf(tokenId);
+        uint32 federationId = tokenToFederationId[tokenId];
 
         if (tokenOwner == minter) {
             require(
-                registry.isMinter(_msgSender()),
+                registry.isMinter(federationId, _msgSender()),
                 "UNAUTHORIZED_BURN"
             );
         }
