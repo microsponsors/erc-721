@@ -21,7 +21,6 @@ import "./ERC165.sol";
 contract DeployedRegistry {
     function isContentIdRegisteredToCaller(uint32 federationId, string memory contentId) public view returns(bool);
     function isMinter(uint32 federationId, address account) public view returns (bool);
-    function isTrader(uint32 federationId, address account) public view returns(bool);
     function isAuthorizedTransferFrom(uint32 federationId, address from, address to, uint256 tokenId, address minter, address owner) public view returns(bool);
 }
 
@@ -259,24 +258,6 @@ contract ERC721 is ERC165, IERC721 {
         uint balance = address(this).balance;
         (bool success, ) = msg.sender.call.value(balance)("");
         require(success, "WITHDRAW_FAILED");
-
-    }
-
-
-    /***  User account permission modifiers  ***/
-
-
-    /**
-     * @dev Checks if caller isTrader()
-     *      throws with error message and refunds gas if not
-     */
-    modifier onlyTrader() {
-
-        require(
-            registry.isTrader(_msgSender()),
-            "CALLER_NOT_AUTHORIZED_FOR_TRADER_ROLE"
-        );
-        _;
 
     }
 
@@ -911,7 +892,6 @@ contract ERC721 is ERC165, IERC721 {
      */
     function approve(address to, uint256 tokenId)
         public
-        onlyTrader
         whenNotPaused
     {
 
@@ -957,7 +937,6 @@ contract ERC721 is ERC165, IERC721 {
      */
     function setApprovalForAll(address to, bool approved)
         public
-        onlyTrader
         whenNotPaused
     {
 
