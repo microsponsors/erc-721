@@ -983,6 +983,7 @@ contract ERC721 is ERC165, IERC721 {
 
         address minter = _tokenToTimeSlot[tokenId].minter;
         address owner = ownerOf(tokenId);
+        uint32 federationId = tokenToFederationId[tokenId];
 
         if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
             require(
@@ -992,7 +993,7 @@ contract ERC721 is ERC165, IERC721 {
         }
 
         require(
-            registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
+            registry.isAuthorizedTransferFrom(federationId, from, to, tokenId, minter, owner),
             "UNAUTHORIZED_TRANSFER"
         );
 
@@ -1041,6 +1042,7 @@ contract ERC721 is ERC165, IERC721 {
 
         address minter = _tokenToTimeSlot[tokenId].minter;
         address owner = ownerOf(tokenId);
+        uint32 federationId = tokenToFederationId[tokenId];
 
         if (_tokenToTimeSlot[tokenId].isSecondaryTradingEnabled == false) {
             require(
@@ -1050,7 +1052,7 @@ contract ERC721 is ERC165, IERC721 {
         }
 
         require(
-            registry.isAuthorizedTransferFrom(from, to, tokenId, minter, owner),
+            registry.isAuthorizedTransferFrom(federationId, from, to, tokenId, minter, owner),
             "UNAUTHORIZED_TRANSFER"
         );
 
