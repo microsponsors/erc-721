@@ -24,12 +24,12 @@
 ## Mint
 #### mint()
 ```javascript
-mint("foo", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000, false, 1);
+mint("foo.com", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000, false, 1, {value: 100000000000000});
 // --> works, if you send mintFee as msg.value
 // --> should fail if Content ID is not registered to acct in Registry
 //       or account is not whitelisted
 // --> should fail without mintFee sent as msg.value
-mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000, false, 1);
+mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000, false, 1, {value: 100000000000000});
 // --> should fail bc auctionEndTime is after startTime
 ```
 #### mintWithTokenURI()
@@ -73,7 +73,7 @@ Assumes the companion Registry smart contract is already deployed. Update its de
 $ ganache-cli -p 8545
 $ npm run deploy
 $ truffle console --network development
-> Micropsonsors.deployed().then(inst => { m = inst })
+> Microsponsors.deployed().then(inst => { m = inst })
 > admin = "<paste 1st address from ganache>"
 > account1 = "<paste from ganache>"
 > account2 = "<paste from ganache>"
