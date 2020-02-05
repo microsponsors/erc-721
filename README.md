@@ -2,6 +2,12 @@
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
 
+## Smart Contract Addresses/ Deployments
+See [DEPLOYS.md](DEPLOYS.md)
+
+## See All Contract Methods
+See [test/TEST_CASES.md](test/TEST_CASES.md)
+
 ## Minting & Transfer Restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 

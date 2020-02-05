@@ -1,4 +1,5 @@
 # Test Cases
+`Admin` below refers to methods that the the `owner` of the contract (only) has access to.
 
 ## Admin
 #### symbol()
@@ -13,23 +14,24 @@
 #### transferOwnership2()
 
 ## Admin: Registry management
-#### registry()
+#### registry() - public method
 #### updateRegistryAddress()
 
 ## Admin: Mint Fee
-#### mintFee() - public
+#### mintFee() - public method
 #### updateMintFee()
 #### withdrawBalance()
 
 ## Mint
 #### mint()
 ```javascript
-mint("foo.com", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000, false, 1, {value: 100000000000000});
+// Assumes you're in Truffle console, see "Local Setup" info below.
+m.mint("foo.com", "podcast", 1579332938665, 1579632938666, 1572932938664, 1000, false, 1, {value: 100000000000000});
 // --> works, if you send mintFee as msg.value
 // --> should fail if Content ID is not registered to acct in Registry
 //       or account is not whitelisted
 // --> should fail without mintFee sent as msg.value
-mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000, false, 1, {value: 100000000000000});
+m.mint("foo", "podcast", 1579332938665, 1579632938666, 1579332938666, 1000, false, 1, {value: 100000000000000});
 // --> should fail bc auctionEndTime is after startTime
 ```
 #### mintWithTokenURI()
@@ -80,5 +82,5 @@ $ truffle console --network development
 > account3 = "<paste from ganache>"
 > contractAddr = "<paste from ganache>"
 ```
-The following test scenarios assume you're querying from truffle console.
+The test scenarios above assume you're querying from truffle console.
 `m` = instance created when you deployed this contract.
