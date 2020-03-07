@@ -23,12 +23,6 @@ federationId, // which registry to check for transfer restrictions
 }
 ```
 
-## Smart Contract Addresses/ Deployments
-See [DEPLOYS.md](DEPLOYS.md)
-
-## See All Contract Methods
-See [test/TEST_CASES.md](test/TEST_CASES.md)
-
 ## Minting & Transfer Restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
@@ -40,6 +34,14 @@ Note that there *are* transfer restrictions on these tokens, to satisfy the foll
 We plan to Federate so that other organizations can implement their own rules and logic around Registration, token minting, selling and re-selling (think: DAOs, game studios, media orgs, agencies, consultants, freelancers, etc).
 
 More information about how this will work in our [Proof-of-Content Registry](https://github.com/microsponsors/registry-contract).
+
+---
+
+## Smart Contract Addresses/ Deployments
+See [DEPLOYS.md](DEPLOYS.md)
+
+## See All Contract Methods
+See [test/TEST_CASES.md](test/TEST_CASES.md)
 
 ---
 
