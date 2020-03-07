@@ -45,6 +45,8 @@ See [test/TEST_CASES.md](test/TEST_CASES.md)
 
 ---
 
+## Develop
+
 #### Install
 * Install dependencies: `$ npm install`
 
