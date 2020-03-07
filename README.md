@@ -1,6 +1,27 @@
-# Microsponsors ERC-721 (NFT) Time Slot Tokens
+# Microsponsors MSPT Time Slot Tokens
+### ERC-721 compatible Non-Fungible Tokens (NFT)
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
+
+Each MSPT can be queried by tokenId:
+```
+tokenTimeSlot(23);
+```
+Returns:
+```javascript
+{
+minter, // Ethereum address of the token's Minter/Creator
+owner, // Ethereum address of the token's current owner
+contentId, // the creator's web domain, url, social media account or email
+propertyName, // short re-usable description of time slot
+startTime, // UTC timestamp; when the time slot begins
+endTime, // UTC timestamp; when the time slot ends
+auctionEndTime, // UTC timestamp; when the auction ends
+category, // for sorting tokens by creator type
+isSecondaryTradingEnabled, // can be true or false, up to the Minter/Creator
+federationId, // which registry to check for transfer restrictions
+}
+```
 
 ## Smart Contract Addresses/ Deployments
 See [DEPLOYS.md](DEPLOYS.md)
@@ -11,8 +32,8 @@ See [test/TEST_CASES.md](test/TEST_CASES.md)
 ## Minting & Transfer Restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
-1. All minters (Creators) must be validated in our Proof-of-Content Registry to help eliminate fraud/ impersonation/ spamming.
-2. Microsponsors ERC-721s (NFTs) give minters the option to disable token resale to third-parties, to help ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which brands or organizations they wish to work with.
+1. All Minters (Creators) must be validated in our Proof-of-Content Registry to help eliminate fraud/ impersonation/ spamming.
+2. Microsponsors ERC-721s (NFTs) give Minters the option to disable token resale to third-parties, to help ensure that their time slots aren't sold to anyone they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which organizations they wish to work with.
 
 ## Path to Federation
 
