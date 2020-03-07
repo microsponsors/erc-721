@@ -11,7 +11,7 @@ See [test/TEST_CASES.md](test/TEST_CASES.md)
 ## Minting & Transfer Restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
-1. All minters (Creators) and buyers (Sponsors) must be validated in our Proof-of-Content Registry to eliminate fraud/ impersonation/ spamming.
+1. All minters (Creators) must be validated in our Proof-of-Content Registry to help eliminate fraud/ impersonation/ spamming.
 2. Microsponsors ERC-721s (NFTs) give minters the option to disable token resale to third-parties, to help ensure that Creators' time slots aren't sold to individuals or organizations they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which brands or organizations they wish to work with.
 
 ## Path to Federation
