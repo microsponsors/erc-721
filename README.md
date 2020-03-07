@@ -26,7 +26,7 @@ federationId, // which registry to check for transfer restrictions
 ## Minting & Transfer Restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
-1. All Minters (Creators) must be validated in our Proof-of-Content Registry to help eliminate fraud/ impersonation/ spamming.
+1. All Minters (Creators) must be validated in our [Proof-of-Content Registry](https://github.com/microsponsors/registry-contract) to help eliminate fraud/ impersonation/ spamming.
 2. Microsponsors ERC-721s (NFTs) give Minters the option to disable token resale to third-parties, to help ensure that their time slots aren't sold to anyone they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which organizations they wish to work with.
 
 ## Path to Federation
