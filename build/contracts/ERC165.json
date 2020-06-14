@@ -29,7 +29,7 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.11+commit.c082d0b4\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"details\":\"Implementation of the {IERC165} interface. * Contracts may inherit from this and call {_registerInterface} to declare their support of an interface.\",\"methods\":{\"supportsInterface(bytes4)\":{\"details\":\"See {IERC165-supportsInterface}.     * Time complexity O(1), guaranteed to always use less than 30 000 gas.\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/lauren/github/erc-721/contracts/ERC165.sol\":\"ERC165\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/lauren/github/erc-721/contracts/ERC165.sol\":{\"keccak256\":\"0x3a7970619ff17158d3906f2d74b2fa9896e698368ffe4bbacf4c61a821de5a89\",\"urls\":[\"bzz-raw://9abeddaf2555a3d4cc13e7988bee67ea60ce72ac70e27ce3c4120f873b0528c8\",\"dweb:/ipfs/QmVxW1BRWhpVLtecgN41Cx2XTNdiVAVbDUKQd6V1YTv6Qc\"]},\"/Users/lauren/github/erc-721/contracts/IERC165.sol\":{\"keccak256\":\"0xdf77f8206b88bee3fab2197feea6db1d30d88799485b2c8f94de4ccfc5130f51\",\"urls\":[\"bzz-raw://652a4382cf6ce8b5b950a7e10ad3acf2756c9b57b6dc97a453cb8de365e2dd74\",\"dweb:/ipfs/QmdQjC5k9RSMYxC1bnHwRvUCemsrx59wWVT8gBG85xmA1y\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.11+commit.c082d0b4\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"}],\"devdoc\":{\"details\":\"Implementation of the {IERC165} interface. * Contracts may inherit from this and call {_registerInterface} to declare their support of an interface.\",\"methods\":{\"supportsInterface(bytes4)\":{\"details\":\"See {IERC165-supportsInterface}.     * Time complexity O(1), guaranteed to always use less than 30 000 gas.\"}}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/lauren/github/erc-721/contracts/ERC165.sol\":\"ERC165\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":true,\"runs\":500},\"remappings\":[]},\"sources\":{\"/Users/lauren/github/erc-721/contracts/ERC165.sol\":{\"keccak256\":\"0x3a7970619ff17158d3906f2d74b2fa9896e698368ffe4bbacf4c61a821de5a89\",\"urls\":[\"bzz-raw://9abeddaf2555a3d4cc13e7988bee67ea60ce72ac70e27ce3c4120f873b0528c8\",\"dweb:/ipfs/QmVxW1BRWhpVLtecgN41Cx2XTNdiVAVbDUKQd6V1YTv6Qc\"]},\"/Users/lauren/github/erc-721/contracts/IERC165.sol\":{\"keccak256\":\"0xdf77f8206b88bee3fab2197feea6db1d30d88799485b2c8f94de4ccfc5130f51\",\"urls\":[\"bzz-raw://652a4382cf6ce8b5b950a7e10ad3acf2756c9b57b6dc97a453cb8de365e2dd74\",\"dweb:/ipfs/QmdQjC5k9RSMYxC1bnHwRvUCemsrx59wWVT8gBG85xmA1y\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
@@ -63,7 +63,7 @@
         "id": 93,
         "nodeType": "ImportDirective",
         "scope": 143,
-        "sourceUnit": 2129,
+        "sourceUnit": 2403,
         "src": "27:23:2",
         "symbolAliases": [],
         "unitAlias": ""
@@ -77,10 +77,10 @@
               "id": 94,
               "name": "IERC165",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2128,
+              "referencedDeclaration": 2402,
               "src": "243:7:2",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC165_$2128",
+                "typeIdentifier": "t_contract$_IERC165_$2402",
                 "typeString": "contract IERC165"
               }
             },
@@ -90,7 +90,7 @@
           }
         ],
         "contractDependencies": [
-          2128
+          2402
         ],
         "contractKind": "contract",
         "documentation": "@dev Implementation of the {IERC165} interface.\n * Contracts may inherit from this and call {_registerInterface} to declare\ntheir support of an interface.",
@@ -98,7 +98,7 @@
         "id": 142,
         "linearizedBaseContracts": [
           142,
-          2128
+          2402
         ],
         "name": "ERC165",
         "nodeType": "ContractDefinition",
@@ -408,7 +408,7 @@
             "scope": 142,
             "src": "917:133:2",
             "stateMutability": "view",
-            "superFunction": 2127,
+            "superFunction": 2401,
             "visibility": "external"
           },
           {
@@ -505,10 +505,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2590,
-                        2591
+                        2864,
+                        2865
                       ],
-                      "referencedDeclaration": 2591,
+                      "referencedDeclaration": 2865,
                       "src": "1511:7:2",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -699,7 +699,7 @@
         "id": 93,
         "nodeType": "ImportDirective",
         "scope": 143,
-        "sourceUnit": 2129,
+        "sourceUnit": 2403,
         "src": "27:23:2",
         "symbolAliases": [],
         "unitAlias": ""
@@ -713,10 +713,10 @@
               "id": 94,
               "name": "IERC165",
               "nodeType": "UserDefinedTypeName",
-              "referencedDeclaration": 2128,
+              "referencedDeclaration": 2402,
               "src": "243:7:2",
               "typeDescriptions": {
-                "typeIdentifier": "t_contract$_IERC165_$2128",
+                "typeIdentifier": "t_contract$_IERC165_$2402",
                 "typeString": "contract IERC165"
               }
             },
@@ -726,7 +726,7 @@
           }
         ],
         "contractDependencies": [
-          2128
+          2402
         ],
         "contractKind": "contract",
         "documentation": "@dev Implementation of the {IERC165} interface.\n * Contracts may inherit from this and call {_registerInterface} to declare\ntheir support of an interface.",
@@ -734,7 +734,7 @@
         "id": 142,
         "linearizedBaseContracts": [
           142,
-          2128
+          2402
         ],
         "name": "ERC165",
         "nodeType": "ContractDefinition",
@@ -1044,7 +1044,7 @@
             "scope": 142,
             "src": "917:133:2",
             "stateMutability": "view",
-            "superFunction": 2127,
+            "superFunction": 2401,
             "visibility": "external"
           },
           {
@@ -1141,10 +1141,10 @@
                       "name": "require",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [
-                        2590,
-                        2591
+                        2864,
+                        2865
                       ],
-                      "referencedDeclaration": 2591,
+                      "referencedDeclaration": 2865,
                       "src": "1511:7:2",
                       "typeDescriptions": {
                         "typeIdentifier": "t_function_require_pure$_t_bool_$_t_string_memory_ptr_$returns$__$",
@@ -1314,7 +1314,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.10",
-  "updatedAt": "2019-12-31T03:38:21.703Z",
+  "updatedAt": "2020-02-02T21:41:42.856Z",
   "devdoc": {
     "details": "Implementation of the {IERC165} interface. * Contracts may inherit from this and call {_registerInterface} to declare their support of an interface.",
     "methods": {

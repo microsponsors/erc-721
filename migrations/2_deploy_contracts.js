@@ -4,10 +4,12 @@ module.exports = function(deployer) {
 
   deployer.deploy(
     Microsponsors,
-    "Microsponsors Time Slots", // Name
-    "MSPT", // Symbol
-    // Kovan: Microsponsors Registry v0.2 address:
-    "0xcac14f367a032c14563a5ade63e33f00fe0f4c89"
+    // Token name:
+    "Microsponsors Time Slots",
+    // Token symbol:
+    "MSPT",
+    // Microsponsors Registry address:
+    "0xb6A30fdc3e3f11b20af1670550083AA06eb0479A"
    );
 
 };
