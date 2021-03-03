@@ -1,5 +1,5 @@
-# Microsponsors MSPT Time Slot Tokens
-### ERC-721 compatible Non-Fungible Tokens (NFT)
+# MSPT: Microsponsors Time Slot NFTs
+### ERC-721 compatible Non-Fungible Tokens (NFTs)
 
 Adapted from [Open Zeppelin's ERC721.sol templates](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721) at git tag `v.2.4.0-beta.2` (git sha: [d1158ea](https://github.com/OpenZeppelin/openzeppelin-contracts/commit/d1158ea68c597075a5aec4a77a9c16f061beffd3))
 
@@ -13,11 +13,8 @@ Returns:
 minter, // Ethereum address of the token's Minter/Creator
 owner, // Ethereum address of the token's current owner
 contentId, // the creator's web domain, url, social media account or email
-propertyName, // short re-usable description of time slot
 startTime, // UTC timestamp; when the time slot begins
 endTime, // UTC timestamp; when the time slot ends
-auctionEndTime, // UTC timestamp; when the auction ends
-category, // for sorting tokens by creator type
 isSecondaryTradingEnabled, // can be true or false, up to the Minter/Creator
 federationId, // which registry to check for transfer restrictions
 }
@@ -27,7 +24,7 @@ federationId, // which registry to check for transfer restrictions
 Note that there *are* transfer restrictions on these tokens, to satisfy the following business requirements:
 
 1. All Minters (Creators) must be validated in our [Proof-of-Content Registry](https://github.com/microsponsors/registry-contract) to help eliminate fraud/ impersonation/ spamming.
-2. Microsponsors ERC-721s (NFTs) give Minters the option to disable token resale to third-parties, to help ensure that their time slots aren't sold to anyone they do not wish to transact with. This is useful for certain use-cases, i.e. Creators who want to carefully choose which organizations they wish to work with.
+2. Microsponsors NFTs give Minters the option to disable token resale to third-parties, to ensure that their time slots aren't sold to anyone they do not wish to transact with.
 
 ## Path to Federation
 

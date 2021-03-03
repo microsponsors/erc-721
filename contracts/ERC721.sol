@@ -72,26 +72,15 @@ contract ERC721 is ERC165, IERC721 {
     ///      https://medium.com/@novablitz/storing-structs-is-costing-you-gas-774da988895e
     struct TimeSlot {
         address minter; // the address of the user who mint()'ed this time slot
-        string contentId; // the users' registered contentId containing the Property
-        string propertyName; // describes the Property within the contentId that is tokenized into time slots
+        string contentId; // the users' registered contentId
         uint48 startTime; // min timestamp (when time slot begins)
         uint48 endTime; // max timestamp (when time slot ends)
-        uint48 auctionEndTime; // max timestamp (when auction for time slot ends)
-        uint16 category; // integer that represents the category (see Microsponsors utils.js)
         bool isSecondaryTradingEnabled; // if true, first buyer can trade to others
     }
+
     /// @dev _tokenToTimeSlot mapping from Token ID to TimeSlot struct
     ///      Use tokenTimeSlot() public method to read
     mapping(uint256 => TimeSlot) private _tokenToTimeSlot;
-
-    /// @dev PropertyNameStruct: name of the time slot
-    struct PropertyNameStruct {
-        string propertyName;
-    }
-    /// @dev _tokenMinterToPropertyName mapping from Minter => Content ID => array of Property Names
-    ///      Used to display all tokenized Time Slots on a given Property.
-    ///      Using struct because there is no mapping to a dynamic array of bytes32 in Solidity at this time.
-    mapping(address => mapping(string => PropertyNameStruct[])) private _tokenMinterToPropertyNames;
 
     /// @dev ContentIdStruct The registered Content ID, verified by Registry contract
     struct ContentIdStruct {
@@ -271,11 +260,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     function mint(
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId
     )
@@ -295,12 +281,12 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
+            _isValidTimeSlot(contentId, startTime, endTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -314,11 +300,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     function mintWithTokenURI(
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId,
         string memory tokenURI
@@ -339,12 +322,12 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
+            _isValidTimeSlot(contentId, startTime, endTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
         _setTokenURI(tokenId, tokenURI);
         tokenToFederationId[tokenId] = federationId;
 
@@ -358,11 +341,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     function safeMint(
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId
     )
@@ -382,12 +362,12 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
+            _isValidTimeSlot(contentId, startTime, endTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -401,11 +381,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     function safeMint(
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId,
         bytes memory data
@@ -426,12 +403,12 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
+            _isValidTimeSlot(contentId, startTime, endTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender(), data);
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
         tokenToFederationId[tokenId] = federationId;
 
         return tokenId;
@@ -444,11 +421,8 @@ contract ERC721 is ERC165, IERC721 {
      */
     function safeMintWithTokenURI(
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId,
         string memory tokenURI
@@ -469,12 +443,12 @@ contract ERC721 is ERC165, IERC721 {
         );
 
         require(
-            _isValidTimeSlot(contentId, startTime, endTime, auctionEndTime, federationId),
+            _isValidTimeSlot(contentId, startTime, endTime, federationId),
             "INVALID_TIME_SLOT"
         );
 
         uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, propertyName, startTime, endTime, auctionEndTime, category, isSecondaryTradingEnabled);
+        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
         _setTokenURI(tokenId, tokenURI);
         tokenToFederationId[tokenId] = federationId;
 
@@ -590,18 +564,12 @@ contract ERC721 is ERC165, IERC721 {
         string memory contentId,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
         uint32 federationId
     ) internal view returns (bool) {
 
         require(
             registry.isContentIdRegisteredToCaller(federationId, contentId),
             "CONTENT_ID_NOT_REGISTERED_TO_CALLER"
-        );
-
-        require(
-            startTime > auctionEndTime,
-            "START_TIME_AFTER_AUCTION_END_TIME"
         );
 
         require(
@@ -630,31 +598,11 @@ contract ERC721 is ERC165, IERC721 {
     }
 
 
-    function _isPropertyNameMappedToMinter(
-        string memory contentId,
-        string memory propertyName
-    )  internal view returns (bool) {
-
-        PropertyNameStruct[] memory a = _tokenMinterToPropertyNames[msg.sender][contentId];
-        bool foundMatch = false;
-        for (uint i = 0; i < a.length; i++) {
-            if (stringsMatch(propertyName, a[i].propertyName)) {
-                foundMatch = true;
-            }
-        }
-
-        return foundMatch;
-    }
-
-
     function _setTokenTimeSlot(
         uint256 tokenId,
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled
     ) internal {
 
@@ -666,23 +614,15 @@ contract ERC721 is ERC165, IERC721 {
         TimeSlot memory _timeSlot = TimeSlot({
             minter: address(_msgSender()),
             contentId: string(contentId),
-            propertyName: string(propertyName),
             startTime: uint48(startTime),
             endTime: uint48(endTime),
-            auctionEndTime: uint48(auctionEndTime),
-            category: uint16(category),
             isSecondaryTradingEnabled: bool(isSecondaryTradingEnabled)
-
         });
 
         _tokenToTimeSlot[tokenId] = _timeSlot;
 
         if (!_isContentIdMappedToMinter(contentId)) {
             _tokenMinterToContentIds[_msgSender()].push( ContentIdStruct(contentId) );
-        }
-
-        if (!_isPropertyNameMappedToMinter(contentId, propertyName)) {
-            _tokenMinterToPropertyNames[_msgSender()][contentId].push( PropertyNameStruct(propertyName) );
         }
 
     }
@@ -692,11 +632,8 @@ contract ERC721 is ERC165, IERC721 {
         address minter,
         address owner,
         string memory contentId,
-        string memory propertyName,
         uint48 startTime,
         uint48 endTime,
-        uint48 auctionEndTime,
-        uint16 category,
         bool isSecondaryTradingEnabled,
         uint32 federationId
     ) {
@@ -713,11 +650,8 @@ contract ERC721 is ERC165, IERC721 {
             _timeSlot.minter,
             ownerOf(tokenId),
             _timeSlot.contentId,
-            _timeSlot.propertyName,
             _timeSlot.startTime,
             _timeSlot.endTime,
-            _timeSlot.auctionEndTime,
-            _timeSlot.category,
             _timeSlot.isSecondaryTradingEnabled,
             _federationId
         );
@@ -740,24 +674,6 @@ contract ERC721 is ERC165, IERC721 {
 
         for (uint i = 0; i < m.length; i++) {
             r[i] = m[i].contentId;
-        }
-
-        return r;
-
-    }
-
-    /// @dev Look up all Property Names a Minter has created Time Slots for
-    ///      with a particular Content ID
-    function tokenMinterPropertyNames(
-        address minter,
-        string calldata contentId
-    ) external view returns (string[] memory) {
-
-        PropertyNameStruct[] memory m = _tokenMinterToPropertyNames[minter][contentId];
-        string[] memory r = new string[](m.length);
-
-        for (uint i = 0; i < m.length; i++) {
-            r[i] =  m[i].propertyName;
         }
 
         return r;

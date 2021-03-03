@@ -1718,9 +1718,6 @@ contract ERC721 is ERC165, IERC721 {
 
 // File: contracts/Microsponsors.sol
 
-pragma solidity ^0.5.11;
-pragma experimental ABIEncoderV2;
-
 
 /**
  * Customized for Microsponsors
