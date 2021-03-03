@@ -1,5 +1,5 @@
 {
-  "name": "microsponsors-erc-721",
+  "name": "mspt",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
