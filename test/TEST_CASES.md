@@ -2,12 +2,12 @@
 
 ## Local Setup
 
-Start ganache in one terminal locally, then deploy and start truffle console in another.
+Start ganache in one terminal locally via `$ ganache-cli -p 8545
+`, then deploy and start truffle console in another.
 
 Assumes the companion Registry smart contract is already deployed. Update its deployed address in this repo: `/migrations/2_deploy_contracts.js`.
 
 ```
-$ ganache-cli -p 8545
 $ npm run deploy
 $ truffle console --network development
 > Microsponsors.deployed().then(inst => { m = inst })
@@ -15,7 +15,9 @@ $ truffle console --network development
 > account1 = "<paste from ganache>"
 > account2 = "<paste from ganache>"
 > account3 = "<paste from ganache>"
-> contractAddr = "<paste from ganache>"
+> msptAddr = "<paste from ganache>"
+> m.registry()  # echoes out Registry contract address
+> m.updateTokenURIBaseURL("https://api.microsponsors.io/")
 ```
 The test scenarios above assume you're querying from truffle console.
 `m` = instance created when you deployed this contract.
@@ -30,6 +32,8 @@ The test scenarios above assume you're querying from truffle console.
 #### paused()
 #### pause()
 #### unpause()
+#### updateTokenURIBaseURL()
+#### tokenURIBaseURL()
 
 ## Admin: Ownership
 #### owner1()
@@ -50,12 +54,13 @@ The test scenarios above assume you're querying from truffle console.
 #### mint()
 ```javascript
 // Assumes you're in Truffle console, see "Local Setup" info above.
-m.mint("foo.com", 1579332938665, 1579632938666, false, 1, {value: 100000000000000});
+m.mint("bdns%3Afoo.com", 1579332938665, 1579632938666, false, 1, { value: 100000000000000, from: account1 });
 // --> works, if you send mintFee as msg.value
 // --> should fail if Content ID is not registered to acct in Registry
 //       or account is not whitelisted
 // --> should fail without mintFee sent as msg.value
-m.mint("foo.com", 1579332938665, 1579632938664, false, 1, {value: 100000000000000});
+
+m.mint("bdns%3Afoo.com", 1579332938665, 1579332938660, false, 1, {value: 100000000000000, from: account1 });
 // --> should fail bc startTime is after endTime
 ```
 #### safeMint()

@@ -506,7 +506,7 @@ contract ERC721 is ERC165, IERC721 {
     mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
     /// @dev set by Admin
-    string public tokenURIBaseUrl = '';
+    string public tokenURIBaseURL = '';
 
     /// @dev _tokenApprovals Mapping from Token ID to Approved Address
     mapping (uint256 => address) private _tokenApprovals;
@@ -636,12 +636,12 @@ contract ERC721 is ERC165, IERC721 {
      * @dev Update the base url for all tokenURI's
      */
 
-    function updateTokenURIBaseUrl(string memory val)
+    function updateTokenURIBaseURL(string memory val)
         public
         onlyOwner
     {
 
-        tokenURIBaseUrl = val;
+        tokenURIBaseURL = val;
 
     }
 
@@ -873,7 +873,7 @@ contract ERC721 is ERC165, IERC721 {
     /**
      * Throws if the token ID does not exist. May return an empty string.
      * @param tokenId uint256 ID of the token to query
-     * @return URI for a given token ID.
+     * @return URI for a given token ID
      */
     function tokenURI(uint256 tokenId) external view returns (string memory) {
 
@@ -882,7 +882,7 @@ contract ERC721 is ERC165, IERC721 {
             "NON_EXISTENT_TOKEN"
         );
 
-        return string(abi.encodePacked(tokenURIBaseUrl, tokenId));
+        return string(abi.encodePacked(tokenURIBaseURL, uint256ToString(tokenId)));
 
     }
 
@@ -1509,17 +1509,6 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  Helper fns  ***/
 
-    function stringsMatch (
-        string memory a,
-        string memory b
-    )
-        private
-        pure
-        returns (bool)
-    {
-        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
-    }
-
     function isSecondaryTrade (
         address from,
         address to,
@@ -1538,6 +1527,36 @@ contract ERC721 is ERC165, IERC721 {
             return true;
         }
 
+    }
+
+    function stringsMatch (
+        string memory a,
+        string memory b
+    )
+        private
+        pure
+        returns (bool)
+    {
+        return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
+    }
+
+    function uint256ToString(uint _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
     }
 
 }

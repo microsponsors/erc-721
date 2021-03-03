@@ -9,7 +9,7 @@ module.exports = function(deployer) {
     // Token symbol:
     "MSPT",
     // Microsponsors Registry address:
-    "0xb6A30fdc3e3f11b20af1670550083AA06eb0479A"
+    "0x8A67513f3Ad5Ae49b550CEE04d41729564c3cc93"
    );
 
 };

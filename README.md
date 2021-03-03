@@ -56,6 +56,8 @@ $ npm run lint
 
 #### Local Compile & Deploy
 * Start Ganache in another terminal: `$ ganache-cli -p 8545`
+* Deploy the Registry contract first, copy its contract address from output
+* Paste Registry's contract address in `migrations/2_deploy_contracts.js`
 * Compile: `$ npm run compile`. Rebuilds `/build` dir.
 * Deploy to local ganache instance: `$ truffle migrate --network development `
 * Or... Compile & Deploy in one step: `$ npm run deploy`
