@@ -467,7 +467,7 @@ contract ERC721 is ERC165, IERC721 {
             "NON_EXISTENT_TOKEN"
         );
 
-        return string(abi.encodePacked(tokenURIBaseURL, uint256ToString(tokenId)));
+        return string(abi.encodePacked(tokenURIBaseURL, uintToString(tokenId)));
 
     }
 
@@ -1094,6 +1094,7 @@ contract ERC721 is ERC165, IERC721 {
 
     /***  Helper fns  ***/
 
+
     function isSecondaryTrade (
         address from,
         address to,
@@ -1114,6 +1115,7 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+
     function stringsMatch (
         string memory a,
         string memory b
@@ -1125,7 +1127,8 @@ contract ERC721 is ERC165, IERC721 {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))) );
     }
 
-    function uint256ToString(uint _i) internal pure returns (string memory _uintAsString) {
+
+    function uintToString(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
         }
