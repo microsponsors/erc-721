@@ -38,7 +38,7 @@ The test scenarios above assume you're querying from truffle console.
 #### transferOwnership2()
 
 ## Admin: Registry management
-#### registry() - public method
+#### registry() - public read method
 #### updateRegistryAddress()
 
 ## Admin: Mint Fee
@@ -49,29 +49,26 @@ The test scenarios above assume you're querying from truffle console.
 ## Mint
 #### mint()
 ```javascript
-// Assumes you're in Truffle console, see "Local Setup" info below.
+// Assumes you're in Truffle console, see "Local Setup" info above.
 m.mint("foo.com", 1579332938665, 1579632938666, false, 1, {value: 100000000000000});
 // --> works, if you send mintFee as msg.value
 // --> should fail if Content ID is not registered to acct in Registry
 //       or account is not whitelisted
 // --> should fail without mintFee sent as msg.value
-m.mint("foo", 1579332938665, 1579632938666, false, 1, {value: 100000000000000});
-// --> should fail bc auctionEndTime is after startTime
+m.mint("foo.com", 1579332938665, 1579632938664, false, 1, {value: 100000000000000});
+// --> should fail bc startTime is after endTime
 ```
-#### mintWithTokenURI()
 #### safeMint()
-#### safeMintWithTokenURI()
 
 ## Gets
-#### totalSupply()
-#### balanceOf()
 #### ownerOf()
-#### tokensOfOwner()
+#### balanceOf()
 #### tokenURI()
+#### tokenTimeSlot()
+#### totalSupply()
+#### tokensOfOwner()
 #### tokensMintedBy()
 #### tokenMinterContentIds()
-#### tokenMinterPropertyNames()
-#### tokenTimeSlot()
 #### tokenFederationId()
 
 ## Transfers
@@ -84,4 +81,3 @@ m.mint("foo", 1579332938665, 1579632938666, false, 1, {value: 100000000000000});
 
 ## Burns
 #### burn()
-

@@ -90,8 +90,8 @@ contract ERC721 is ERC165, IERC721 {
     ///      that they have *ever* minted tokens for
     mapping(address => ContentIdStruct[]) private _tokenMinterToContentIds;
 
-    /// @dev _tokenURIs Mapping from Token ID to Token URIs
-    mapping(uint256 => string) private _tokenURIs;
+    /// @dev set by Admin
+    string public tokenURIBaseUrl = '';
 
     /// @dev _tokenApprovals Mapping from Token ID to Approved Address
     mapping (uint256 => address) private _tokenApprovals;
@@ -217,6 +217,19 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
+    /**
+     * @dev Update the base url for all tokenURI's
+     */
+
+    function updateTokenURIBaseUrl(string memory val)
+        public
+        onlyOwner
+    {
+
+        tokenURIBaseUrl = val;
+
+    }
+
     /// @dev Pausable (adapted from OpenZeppelin via Cryptokitties)
     /// @dev Modifier to allow actions only when the contract IS NOT paused
     modifier whenNotPaused() {
@@ -293,47 +306,6 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    /**
-     * @dev Function to mint tokens.
-     * @param tokenURI The token URI of the minted token.
-     * @return tokenId
-     */
-    function mintWithTokenURI(
-        string memory contentId,
-        uint48 startTime,
-        uint48 endTime,
-        bool isSecondaryTradingEnabled,
-        uint32 federationId,
-        string memory tokenURI
-    )
-        public
-        payable
-        whenNotPaused
-        returns (uint256)
-    {
-
-        require(msg.value >= mintFee);
-
-        require(federationId > 0, "INVALID_FEDERATION_ID");
-
-        require(
-            registry.isMinter(federationId, _msgSender()),
-            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
-        );
-
-        require(
-            _isValidTimeSlot(contentId, startTime, endTime, federationId),
-            "INVALID_TIME_SLOT"
-        );
-
-        uint256 tokenId = _mint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
-        _setTokenURI(tokenId, tokenURI);
-        tokenToFederationId[tokenId] = federationId;
-
-        return tokenId;
-
-    }
 
     /**
      * @dev Function to safely mint tokens.
@@ -415,46 +387,6 @@ contract ERC721 is ERC165, IERC721 {
 
     }
 
-    /**
-     * @param tokenURI The token URI of the minted token.
-     * @return tokenId
-     */
-    function safeMintWithTokenURI(
-        string memory contentId,
-        uint48 startTime,
-        uint48 endTime,
-        bool isSecondaryTradingEnabled,
-        uint32 federationId,
-        string memory tokenURI
-    )
-        public
-        payable
-        whenNotPaused
-        returns (uint256)
-    {
-
-        require(msg.value >= mintFee);
-
-        require(federationId > 0, "INVALID_FEDERATION_ID");
-
-        require(
-            registry.isMinter(federationId, _msgSender()),
-            "CALLER_NOT_AUTHORIZED_FOR_MINTER_ROLE"
-        );
-
-        require(
-            _isValidTimeSlot(contentId, startTime, endTime, federationId),
-            "INVALID_TIME_SLOT"
-        );
-
-        uint256 tokenId = _safeMint(_msgSender());
-        _setTokenTimeSlot(tokenId, contentId, startTime, endTime, isSecondaryTradingEnabled);
-        _setTokenURI(tokenId, tokenURI);
-        tokenToFederationId[tokenId] = federationId;
-
-        return tokenId;
-
-    }
 
     /**
      * @dev Internal function to safely mint a new token.
@@ -524,23 +456,6 @@ contract ERC721 is ERC165, IERC721 {
 
 
     /**
-     * @dev Internal function to set the token URI for a given token.
-     * Reverts if the token ID does not exist.
-     * @param tokenId uint256 ID of the token to set its URI
-     * @param uri string URI to assign
-     */
-    function _setTokenURI(uint256 tokenId, string memory uri) internal {
-
-        require(
-            _exists(tokenId),
-            "NON_EXISTENT_TOKEN"
-        );
-
-        _tokenURIs[tokenId] = uri;
-
-    }
-
-    /**
      * Throws if the token ID does not exist. May return an empty string.
      * @param tokenId uint256 ID of the token to query
      * @return URI for a given token ID.
@@ -552,7 +467,7 @@ contract ERC721 is ERC165, IERC721 {
             "NON_EXISTENT_TOKEN"
         );
 
-        return _tokenURIs[tokenId];
+        return string(abi.encodePacked(tokenURIBaseUrl, tokenId));
 
     }
 
@@ -1157,11 +1072,6 @@ contract ERC721 is ERC165, IERC721 {
 
         _ownedTokensCount[tokenOwner].decrement();
         _tokenOwner[tokenId] = address(0);
-
-        // Clear token URIs (if any)
-        if (bytes(_tokenURIs[tokenId]).length != 0) {
-            delete _tokenURIs[tokenId];
-        }
 
         // Clear time slot data
         delete _tokenToTimeSlot[tokenId];
