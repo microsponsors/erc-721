@@ -16,6 +16,7 @@ $ truffle console --network development
 > account2 = "<paste from ganache>"
 > account3 = "<paste from ganache>"
 > msptAddr = "<paste from ganache>"
+> m.updateRegistryAddress("0x994e3a0eedee6413d606961a41bceb8441f32df3")
 > m.registry()  # echoes out Registry contract address
 > m.updateTokenURIBaseURL("https://api.microsponsors.io/")
 ```
